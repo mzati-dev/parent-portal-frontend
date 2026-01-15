@@ -49,13 +49,13 @@ const Header: React.FC<HeaderProps> = ({ onShowAdmin }) => {
                         >
                             Create Account
                         </button>
-                        <button
+                        {/* <button
                             onClick={onShowAdmin}
                             className="hover:text-indigo-600 transition-colors flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-indigo-50"
                         >
                             <Settings className="w-4 h-4" />
                             <span className="hidden sm:inline">Admin</span>
-                        </button>
+                        </button> */}
                         <a
                             href="#contact"
                             className="hover:text-indigo-600 transition-colors flex items-center gap-1"

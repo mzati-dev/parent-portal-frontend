@@ -13,6 +13,68 @@ const LoginPage: React.FC = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   if (!email || !password) {
+  //     setError('Please fill in all fields');
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   // const { error } = await signIn(email, password);
+
+  //   // if (error) {
+  //   //   setError(error.message || 'Failed to sign in. Please check your credentials.');
+  //   //   setLoading(false);
+  //   // } else {
+  //   //   navigate('/');
+  //   // }
+  //   // --- BYPASS START ---
+  //   // Instead of calling the real signIn(email, password)
+  //   // console.log("Bypassing Auth for development...");
+
+  //   // // We simulate a successful login and redirect
+  //   // setTimeout(() => {
+  //   //   navigate('/');
+  //   // }, 500);
+  //   // // --- BYPASS END ---
+  //   // USE THIS INSTEAD:
+  //   const { error } = await signIn(email, password);
+
+  //   if (error) {
+  //     setError(error.message || 'Failed to sign in. Please check your credentials.');
+  //     setLoading(false);
+  //   } else {
+  //     navigate('/');
+  //   }
+  // };
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   if (!email || !password) {
+  //     setError('Please fill in all fields');
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   console.log("Sending login request...");
+  //   const result = await signIn(email, password);
+  //   console.log("Login result:", result); // ADD THIS
+
+  //   if (result.error) {
+  //     setError(result.error.message);
+  //     setLoading(false);
+  //   } else {
+  //     navigate('/');
+  //   }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -24,23 +86,25 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    // const { error } = await signIn(email, password);
+    console.log("Sending login request...");
+    const result = await signIn(email, password);
+    console.log("Login result:", result);
 
-    // if (error) {
-    //   setError(error.message || 'Failed to sign in. Please check your credentials.');
-    //   setLoading(false);
-    // } else {
-    //   navigate('/');
-    // }
-    // --- BYPASS START ---
-    // Instead of calling the real signIn(email, password)
-    console.log("Bypassing Auth for development...");
+    if (result.error) {
+      setError(result.error.message);
+      setLoading(false);
+    } else {
+      // Get user from localStorage (saved by AuthContext)
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('User role:', user.role);
 
-    // We simulate a successful login and redirect
-    setTimeout(() => {
-      navigate('/');
-    }, 500);
-    // --- BYPASS END ---
+      // Redirect based on role
+      if (user.role === 'admin' || user.role === 'super_admin') {
+        navigate('/admin');
+      } else {
+        navigate('/');
+      }
+    }
   };
 
   return (

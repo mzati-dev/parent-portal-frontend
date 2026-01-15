@@ -25,6 +25,45 @@ const SignupPage: React.FC = () => {
 
   const isPasswordValid = passwordRequirements.every(req => req.met);
 
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError('');
+  //   setLoading(true);
+
+  //   if (!fullName || !email || !password || !confirmPassword) {
+  //     setError('Please fill in all fields');
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   if (!isPasswordValid) {
+  //     setError('Please meet all password requirements');
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   if (password !== confirmPassword) {
+  //     setError('Passwords do not match');
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   // const { error } = await signUp(email, password, fullName);
+  //   // --- BYPASS START ---
+  //   console.log("Bypassing Signup...");
+  //   setSuccess(true);
+  //   setLoading(false);
+  //   // --- BYPASS END ---
+
+  //   // if (error) {
+  //   //   setError(error.message || 'Failed to create account. Please try again.');
+  //   //   setLoading(false);
+  //   // } else {
+  //   //   setSuccess(true);
+  //   //   setLoading(false);
+  //   // }
+  // };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -48,20 +87,21 @@ const SignupPage: React.FC = () => {
       return;
     }
 
-    // const { error } = await signUp(email, password, fullName);
-    // --- BYPASS START ---
-    console.log("Bypassing Signup...");
-    setSuccess(true);
-    setLoading(false);
-    // --- BYPASS END ---
+    // REMOVE THIS BYPASS CODE:
+    // console.log("Bypassing Signup...");
+    // setSuccess(true);
+    // setLoading(false);
 
-    // if (error) {
-    //   setError(error.message || 'Failed to create account. Please try again.');
-    //   setLoading(false);
-    // } else {
-    //   setSuccess(true);
-    //   setLoading(false);
-    // }
+    // USE THIS INSTEAD:
+    const { error } = await signUp(email, password, fullName);
+
+    if (error) {
+      setError(error.message || 'Failed to create account. Please try again.');
+      setLoading(false);
+    } else {
+      setSuccess(true);
+      setLoading(false);
+    }
   };
 
   if (success) {

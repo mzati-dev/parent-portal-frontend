@@ -1,6 +1,19 @@
 const API_BASE_URL = 'http://localhost:3000';
 
-// --- TYPES ---
+// ====================== NEW CODE TO ADD ======================
+// ADD THIS FUNCTION: Gets JWT token from localStorage
+const getAuthToken = () => {
+  return localStorage.getItem('token');
+};
+
+// ADD THIS FUNCTION: Creates headers with auth token
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  'Authorization': `Bearer ${getAuthToken()}`
+});
+// ====================== END OF NEW CODE ======================
+
+// --- TYPES --- (NO CHANGES NEEDED HERE)
 export interface Class {
   id: string;
   name: string;
@@ -86,29 +99,22 @@ export interface SubjectRecord {
 }
 
 // --- STUDENT/PARENT PORTAL LOGIC ---
+// NO CHANGE NEEDED: This endpoint doesn't require auth (public access)
 export async function fetchStudentByExamNumber(examNumber: string): Promise<StudentData | null> {
     try {
-        // JUST FETCH - NO CALCULATIONS
         const response = await fetch(`${API_BASE_URL}/api/students/results/${examNumber.toUpperCase()}`);
         
         if (!response.ok) return null;
         
         const data = await response.json();
-        
-        // Backend already calculates everything:
-        // - subject.finalScore ✓
-        // - subject.grade ✓  
-        // - assessmentStats ✓
-        // - gradeConfiguration ✓
-        
-        return data; // Use as-is
+        return data;
     } catch (error) {
         console.error('Failed to fetch student data:', error);
         return null;
     }
 }
 
-//NEW CODE
+// NEW CODE - NO CHANGE NEEDED
 export const calculateAndUpdateRanks = async (classId: string, term: string) => {
   const response = await fetch(`${API_BASE_URL}/api/students/calculate-ranks`, {
     method: 'POST',
@@ -120,18 +126,25 @@ export const calculateAndUpdateRanks = async (classId: string, term: string) => 
 };
 
 // --- ADMIN PANEL LOGIC ---
+// UPDATE THIS: Add auth headers (requires login)
 export const fetchAllStudents = async () => {
-    const res = await fetch(`${API_BASE_URL}/api/students`);
+    const res = await fetch(`${API_BASE_URL}/api/students`, {
+        headers: authHeaders()  // ADD THIS LINE
+    });
     if (!res.ok) throw new Error('Failed to fetch students');
     return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchAllSubjects = async () => {
-    const res = await fetch(`${API_BASE_URL}/api/subjects`);
+    const res = await fetch(`${API_BASE_URL}/api/subjects`, {
+        headers: authHeaders()  // ADD THIS LINE
+    });
     if (!res.ok) throw new Error('Failed to fetch subjects');
     return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const createStudent = async (data: {
   name: string;
   class_id: string;
@@ -139,7 +152,7 @@ export const createStudent = async (data: {
 }) => {
   const res = await fetch(`${API_BASE_URL}/api/students`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),  // CHANGED THIS LINE
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -149,6 +162,7 @@ export const createStudent = async (data: {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const updateStudent = async (id: string, data: {
   name?: string;
   class_id?: string;
@@ -156,7 +170,7 @@ export const updateStudent = async (id: string, data: {
 }) => {
   const res = await fetch(`${API_BASE_URL}/api/students/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),  // CHANGED THIS LINE
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -166,9 +180,11 @@ export const updateStudent = async (id: string, data: {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const deleteStudent = async (id: string) => {
   const res = await fetch(`${API_BASE_URL}/api/students/${id}`, {
     method: 'DELETE',
+    headers: authHeaders()  // ADD THIS LINE
   });
   if (!res.ok) {
     const error = await res.json();
@@ -177,10 +193,11 @@ export const deleteStudent = async (id: string) => {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const upsertAssessment = async (data: any) => {
   const res = await fetch(`${API_BASE_URL}/api/assessments/upsert`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),  // CHANGED THIS LINE
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -190,10 +207,11 @@ export const upsertAssessment = async (data: any) => {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const upsertReportCard = async (data: any) => {
   const res = await fetch(`${API_BASE_URL}/api/report-cards/upsert`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),  // CHANGED THIS LINE
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -203,8 +221,11 @@ export const upsertReportCard = async (data: any) => {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchStudentAssessments = async (id: string) => {
-  const res = await fetch(`${API_BASE_URL}/api/students/${id}/assessments`);
+  const res = await fetch(`${API_BASE_URL}/api/students/${id}/assessments`, {
+    headers: authHeaders()  // ADD THIS LINE
+  });
   if (!res.ok) {
     console.error('Failed to fetch assessments');
     return [];
@@ -212,8 +233,11 @@ export const fetchStudentAssessments = async (id: string) => {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchStudentReportCard = async (id: string, term: string) => {
-  const res = await fetch(`${API_BASE_URL}/api/students/${id}/report-cards/${term}`);
+  const res = await fetch(`${API_BASE_URL}/api/students/${id}/report-cards/${term}`, {
+    headers: authHeaders()  // ADD THIS LINE
+  });
   if (!res.ok) {
     if (res.status === 404) {
       console.log('No report card found for this term');
@@ -225,6 +249,7 @@ export const fetchStudentReportCard = async (id: string, term: string) => {
   return res.json();
 };
 
+// NO CHANGE: This is just a utility function
 export const calculateGrade = (score: number, passMark: number = 50) => {
   if (score >= 80) return 'A';
   if (score >= 70) return 'B';
@@ -233,10 +258,11 @@ export const calculateGrade = (score: number, passMark: number = 50) => {
   return 'F';
 };
 
+// UPDATE THIS: Add auth headers
 export const createSubject = async (data: { name: string }) => {
   const res = await fetch(`${API_BASE_URL}/api/subjects`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),  // CHANGED THIS LINE
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -246,9 +272,11 @@ export const createSubject = async (data: { name: string }) => {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const deleteSubject = async (id: string) => {
   const res = await fetch(`${API_BASE_URL}/api/subjects/${id}`, {
     method: 'DELETE',
+    headers: authHeaders()  // ADD THIS LINE
   });
   if (!res.ok) {
     const error = await res.json();
@@ -257,9 +285,12 @@ export const deleteSubject = async (id: string) => {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchAllClasses = async (): Promise<Class[]> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/classes`);
+    const res = await fetch(`${API_BASE_URL}/api/classes`, {
+      headers: authHeaders()  // ADD THIS LINE
+    });
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
@@ -268,6 +299,7 @@ export const fetchAllClasses = async (): Promise<Class[]> => {
   }
 };
 
+// UPDATE THIS: Add auth headers
 export const createClass = async (data: {
   name: string;
   academic_year: string;
@@ -275,7 +307,7 @@ export const createClass = async (data: {
 }): Promise<Class> => {
   const res = await fetch(`${API_BASE_URL}/api/classes`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: authHeaders(),  // CHANGED THIS LINE
     body: JSON.stringify(data),
   });
   if (!res.ok) {
@@ -285,9 +317,11 @@ export const createClass = async (data: {
   return res.json();
 };
 
+// UPDATE THIS: Add auth headers
 export const deleteClass = async (id: string): Promise<void> => {
   const res = await fetch(`${API_BASE_URL}/api/classes/${id}`, {
     method: 'DELETE',
+    headers: authHeaders()  // ADD THIS LINE
   });
   if (!res.ok) {
     const error = await res.json();
@@ -295,9 +329,12 @@ export const deleteClass = async (id: string): Promise<void> => {
   }
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchStudentsByClass = async (classId: string): Promise<any[]> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/classes/${classId}/students`);
+    const res = await fetch(`${API_BASE_URL}/api/classes/${classId}/students`, {
+      headers: authHeaders()  // ADD THIS LINE
+    });
     if (!res.ok) return [];
     return res.json();
   } catch (error) {
@@ -306,9 +343,12 @@ export const fetchStudentsByClass = async (classId: string): Promise<any[]> => {
   }
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchClassResults = async (classId: string): Promise<any[]> => {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/students/class/${classId}/results`);
+    const res = await fetch(`${API_BASE_URL}/api/students/class/${classId}/results`, {
+      headers: authHeaders()  // ADD THIS LINE
+    });
     if (!res.ok) {
       if (res.status === 404) {
         console.log('No results found for this class');
@@ -323,9 +363,12 @@ export const fetchClassResults = async (classId: string): Promise<any[]> => {
   }
 };
 
+// UPDATE THIS: Add auth headers
 export const fetchGradeConfigurations = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/grade-configs`);
+    const res = await fetch(`${API_BASE_URL}/api/grade-configs`, {
+      headers: authHeaders()  // ADD THIS LINE
+    });
     if (!res.ok) return [];
     return await res.json();
   } catch (error) {
@@ -333,6 +376,342 @@ export const fetchGradeConfigurations = async () => {
     return [];
   }
 };
+
+// const API_BASE_URL = 'http://localhost:3000';
+
+// // --- TYPES ---
+// export interface Class {
+//   id: string;
+//   name: string;
+//   academic_year: string;
+//   term: string;
+//   class_code: string;
+//   created_at: string;
+//   student_count?: number;
+// }
+
+// export interface Subject {
+//     name: string;
+//     qa1: number;
+//     qa2: number;
+//     endOfTerm: number;
+//     grade: string;
+//     finalScore?: number;
+// }
+
+// export interface StudentData {
+//     id: string;
+//     name: string;
+//     examNumber: string;
+//     class: string;
+//     term: string;
+//     photo: string;
+//     subjects: Subject[];
+//     attendance: { present: number; absent: number; late: number };
+//     classRank: number;
+//     totalStudents: number;
+//     teacherRemarks: string;
+    
+//     assessmentStats?: {
+//         qa1: {
+//             classRank: number;
+//             termAverage: number;
+//             overallGrade: string;
+//             attendance?: {
+//                 present: number;
+//                 absent: number;
+//                 late: number;
+//             };
+//         };
+//         qa2: {
+//             classRank: number;
+//             termAverage: number;
+//             overallGrade: string;
+//             attendance?: {
+//                 present: number;
+//                 absent: number;
+//                 late: number;
+//             };
+//         };
+//         endOfTerm: {
+//             classRank: number;
+//             termAverage: number;
+//             overallGrade: string;
+//             attendance: {
+//                 present: number;
+//                 absent: number;
+//                 late: number;
+//             };
+//         };
+//         overall: {
+//             termAverage: number;
+//             calculationMethod: string;
+//         };
+//     };
+    
+//     gradeConfiguration?: {
+//         configuration_name: string;
+//         calculation_method: 'average_all' | 'end_of_term_only' | 'weighted_average';
+//         weight_qa1: number;
+//         weight_qa2: number;
+//         weight_end_of_term: number;
+//         pass_mark: number;
+//     };
+// }
+
+// export interface SubjectRecord {
+//     id: string;
+//     name: string;
+// }
+
+// // --- STUDENT/PARENT PORTAL LOGIC ---
+// export async function fetchStudentByExamNumber(examNumber: string): Promise<StudentData | null> {
+//     try {
+//         // JUST FETCH - NO CALCULATIONS
+//         const response = await fetch(`${API_BASE_URL}/api/students/results/${examNumber.toUpperCase()}`);
+        
+//         if (!response.ok) return null;
+        
+//         const data = await response.json();
+        
+//         // Backend already calculates everything:
+//         // - subject.finalScore ✓
+//         // - subject.grade ✓  
+//         // - assessmentStats ✓
+//         // - gradeConfiguration ✓
+        
+//         return data; // Use as-is
+//     } catch (error) {
+//         console.error('Failed to fetch student data:', error);
+//         return null;
+//     }
+// }
+
+// //NEW CODE
+// export const calculateAndUpdateRanks = async (classId: string, term: string) => {
+//   const response = await fetch(`${API_BASE_URL}/api/students/calculate-ranks`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ class_id: classId, term }),
+//   });
+//   if (!response.ok) throw new Error('Failed to calculate ranks');
+//   return response.json();
+// };
+
+// // --- ADMIN PANEL LOGIC ---
+// export const fetchAllStudents = async () => {
+//     const res = await fetch(`${API_BASE_URL}/api/students`);
+//     if (!res.ok) throw new Error('Failed to fetch students');
+//     return res.json();
+// };
+
+// export const fetchAllSubjects = async () => {
+//     const res = await fetch(`${API_BASE_URL}/api/subjects`);
+//     if (!res.ok) throw new Error('Failed to fetch subjects');
+//     return res.json();
+// };
+
+// export const createStudent = async (data: {
+//   name: string;
+//   class_id: string;
+//   photo_url?: string;
+// }) => {
+//   const res = await fetch(`${API_BASE_URL}/api/students`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(data),
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to create student');
+//   }
+//   return res.json();
+// };
+
+// export const updateStudent = async (id: string, data: {
+//   name?: string;
+//   class_id?: string;
+//   photo_url?: string;
+// }) => {
+//   const res = await fetch(`${API_BASE_URL}/api/students/${id}`, {
+//     method: 'PATCH',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(data),
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to update student');
+//   }
+//   return res.json();
+// };
+
+// export const deleteStudent = async (id: string) => {
+//   const res = await fetch(`${API_BASE_URL}/api/students/${id}`, {
+//     method: 'DELETE',
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to delete student');
+//   }
+//   return res.json();
+// };
+
+// export const upsertAssessment = async (data: any) => {
+//   const res = await fetch(`${API_BASE_URL}/api/assessments/upsert`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(data),
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to save assessment');
+//   }
+//   return res.json();
+// };
+
+// export const upsertReportCard = async (data: any) => {
+//   const res = await fetch(`${API_BASE_URL}/api/report-cards/upsert`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(data),
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to save report card');
+//   }
+//   return res.json();
+// };
+
+// export const fetchStudentAssessments = async (id: string) => {
+//   const res = await fetch(`${API_BASE_URL}/api/students/${id}/assessments`);
+//   if (!res.ok) {
+//     console.error('Failed to fetch assessments');
+//     return [];
+//   }
+//   return res.json();
+// };
+
+// export const fetchStudentReportCard = async (id: string, term: string) => {
+//   const res = await fetch(`${API_BASE_URL}/api/students/${id}/report-cards/${term}`);
+//   if (!res.ok) {
+//     if (res.status === 404) {
+//       console.log('No report card found for this term');
+//       return null;
+//     }
+//     console.error('Failed to fetch report card');
+//     return null;
+//   }
+//   return res.json();
+// };
+
+// export const calculateGrade = (score: number, passMark: number = 50) => {
+//   if (score >= 80) return 'A';
+//   if (score >= 70) return 'B';
+//   if (score >= 60) return 'C';
+//   if (score >= passMark) return 'D';
+//   return 'F';
+// };
+
+// export const createSubject = async (data: { name: string }) => {
+//   const res = await fetch(`${API_BASE_URL}/api/subjects`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(data),
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to create subject');
+//   }
+//   return res.json();
+// };
+
+// export const deleteSubject = async (id: string) => {
+//   const res = await fetch(`${API_BASE_URL}/api/subjects/${id}`, {
+//     method: 'DELETE',
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to delete subject');
+//   }
+//   return res.json();
+// };
+
+// export const fetchAllClasses = async (): Promise<Class[]> => {
+//   try {
+//     const res = await fetch(`${API_BASE_URL}/api/classes`);
+//     if (!res.ok) return [];
+//     return await res.json();
+//   } catch (error) {
+//     console.error('Error fetching classes:', error);
+//     return [];
+//   }
+// };
+
+// export const createClass = async (data: {
+//   name: string;
+//   academic_year: string;
+//   term: string;
+// }): Promise<Class> => {
+//   const res = await fetch(`${API_BASE_URL}/api/classes`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify(data),
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to create class');
+//   }
+//   return res.json();
+// };
+
+// export const deleteClass = async (id: string): Promise<void> => {
+//   const res = await fetch(`${API_BASE_URL}/api/classes/${id}`, {
+//     method: 'DELETE',
+//   });
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to delete class');
+//   }
+// };
+
+// export const fetchStudentsByClass = async (classId: string): Promise<any[]> => {
+//   try {
+//     const res = await fetch(`${API_BASE_URL}/api/classes/${classId}/students`);
+//     if (!res.ok) return [];
+//     return res.json();
+//   } catch (error) {
+//     console.error('Error fetching class students:', error);
+//     return [];
+//   }
+// };
+
+// export const fetchClassResults = async (classId: string): Promise<any[]> => {
+//   try {
+//     const res = await fetch(`${API_BASE_URL}/api/students/class/${classId}/results`);
+//     if (!res.ok) {
+//       if (res.status === 404) {
+//         console.log('No results found for this class');
+//         return [];
+//       }
+//       throw new Error('Failed to fetch class results');
+//     }
+//     return await res.json();
+//   } catch (error) {
+//     console.error('Error fetching class results:', error);
+//     return [];
+//   }
+// };
+
+// export const fetchGradeConfigurations = async () => {
+//   try {
+//     const res = await fetch(`${API_BASE_URL}/api/grade-configs`);
+//     if (!res.ok) return [];
+//     return await res.json();
+//   } catch (error) {
+//     console.error('Failed to fetch grade configurations:', error);
+//     return [];
+//   }
+// };
 
 
 // const API_BASE_URL = 'http://localhost:3000';

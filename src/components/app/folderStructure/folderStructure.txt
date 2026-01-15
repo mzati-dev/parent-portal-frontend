@@ -43,3 +43,26 @@ src/
 │   └── gradeConfigService.ts
 └── utils/
     └── helpers.ts
+
+
+
+
+
+
+    Super Admin Panel:
+- Dashboard
+- Schools Management (CRUD)
+- Payments/Subscriptions
+- Create School Admins
+
+School Admin Panel:
+- Dashboard (only their school)
+- Teachers Management
+- Classes Management
+- Students Management
+- Results Management
+
+Teacher Panel:
+- Dashboard (only their classes)
+- Enter Results
+- View Reports

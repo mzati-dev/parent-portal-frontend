@@ -11,6 +11,7 @@ import LoginPage from "./components/auth/LoginPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import SignupPage from "./components/auth/SignupPage";
 import ForgotPasswordPage from "./components/auth/ForgotPasswordPage";
+import AdminPanel from "./AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
               <Route path="/login" element={<LoginPage />} /> {/* Add this route */}
               <Route path="/signup" element={<SignupPage />} /> {/* Add this route */}
               <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* Add this line */}
+              <Route path="/admin" element={<AdminPanel onBack={() => window.history.back()} />} /> {/* ADD THIS LINE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
