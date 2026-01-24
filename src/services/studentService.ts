@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:3000';
+// const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://eduspace-portal-backend.onrender.com';
+
 
 // ====================== NEW CODE: School ID Helpers ======================
 // const getSchoolId = () => {

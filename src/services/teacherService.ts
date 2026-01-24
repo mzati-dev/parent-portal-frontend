@@ -1,5 +1,7 @@
 // teacherService.ts
-const API_BASE_URL = 'http://localhost:3000';
+// const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'https://eduspace-portal-backend.onrender.com';
+
 
 // School ID helper
 const getSchoolId = () => {

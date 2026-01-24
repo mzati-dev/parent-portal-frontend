@@ -2,7 +2,9 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 // const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
 
-const API_URL = 'http://localhost:3000';
+// const API_URL = 'http://localhost:3000';
+const API_URL = 'https://eduspace-portal-backend.onrender.com';
+
 
 interface User {
   id: string;

@@ -306,12 +306,12 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* Sign Up Link */}
-          <Link
+          {/* <Link
             to="/signup"
             className="block w-full py-3 text-center border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 hover:border-gray-300 transition-all"
           >
             Create an Account
-          </Link>
+          </Link> */}
         </div>
 
         {/* Footer */}
