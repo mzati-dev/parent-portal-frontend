@@ -14,6 +14,7 @@ import ForgotPasswordPage from "./components/auth/ForgotPasswordPage";
 import AdminPanel from "./AdminPanel";
 import SuperAdminPanel from "./components/super-admin/SuperAdminPanel";
 import TeacherPanel from "./components/teacher-panel/TeacherPanel";
+import UserAppLayout from "./components/app/dashboard/UserAppLayout";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,8 @@ const App = () => (
               <Route path="/login" element={<LoginPage />} /> {/* Add this route */}
               <Route path="/signup" element={<SignupPage />} /> {/* Add this route */}
               <Route path="/forgot-password" element={<ForgotPasswordPage />} /> {/* Add this line */}
+              {/* User / Parent dashboard */}
+              <Route path="/dashboard" element={<UserAppLayout />} />
               <Route path="/admin" element={<AdminPanel onBack={() => window.history.back()} />} /> {/* ADD THIS LINE */}
               <Route path="/teacher" element={<TeacherPanel onBack={() => window.history.back()} />} />
               <Route path="/super-admin" element={<SuperAdminPanel onBack={() => window.history.back()} />} /> {/* ADD THIS LINE */}

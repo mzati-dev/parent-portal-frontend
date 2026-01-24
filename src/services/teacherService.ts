@@ -269,6 +269,103 @@ export const removeTeacherAssignment = async (
   }
 };
 // ===== END: NEW TEACHER ASSIGNMENT FUNCTIONS =====
+// ===== START: CLASS TEACHER FUNCTIONS =====
+
+// Assign class teacher to a class
+export const assignClassTeacher = async (
+  teacherId: string, 
+  classId: string
+): Promise<any> => {
+  const url = `${API_BASE_URL}/teachers/class-teacher/assign`;
+  
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ teacherId, classId }),
+  });
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to assign class teacher');
+  }
+  
+  const response = await res.json();
+  
+  if (response.success && response.data) {
+    return response.data;
+  }
+  
+  throw new Error('Invalid response format from server');
+};
+
+// Remove class teacher from a class
+export const removeClassTeacher = async (classId: string): Promise<void> => {
+  const url = `${API_BASE_URL}/teachers/class-teacher/remove/${classId}`;
+  
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: authHeaders(),
+  });
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to remove class teacher');
+  }
+  
+  const response = await res.json();
+  
+  if (!response.success) {
+    throw new Error(response.message || 'Failed to remove class teacher');
+  }
+};
+
+// Get class teacher for a specific class
+export const getClassTeacher = async (classId: string): Promise<any> => {
+  const url = `${API_BASE_URL}/teachers/class-teacher/${classId}`;
+  
+  const res = await fetch(url, {
+    headers: authHeaders()
+  });
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to fetch class teacher');
+  }
+  
+  const response = await res.json();
+  
+  if (response.success) {
+    return response.data; // Could be null if no class teacher
+  }
+  
+  throw new Error('Invalid response format from server');
+};
+
+// Check if teacher is class teacher for a class
+export const isClassTeacher = async (
+  teacherId: string, 
+  classId: string
+): Promise<boolean> => {
+  const url = `${API_BASE_URL}/teachers/is-class-teacher/${teacherId}/${classId}`;
+  
+  const res = await fetch(url, {
+    headers: authHeaders()
+  });
+  
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to check class teacher status');
+  }
+  
+  const response = await res.json();
+  
+  if (response.success && typeof response.data?.isClassTeacher === 'boolean') {
+    return response.data.isClassTeacher;
+  }
+  
+  throw new Error('Invalid response format from server');
+};
+// ===== END: CLASS TEACHER FUNCTIONS =====
 
 
 // // teacherService.ts

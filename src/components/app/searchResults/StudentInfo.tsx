@@ -63,7 +63,7 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ studentData }) => {
                     <div>
                         <h3 className="text-2xl font-bold text-slate-800">{studentData.name}</h3>
                         <p className="text-slate-500">{studentData.class}</p>
-                        <p className="text-sm text-indigo-600 font-medium">{studentData.term}</p>
+                        <p className="text-sm text-indigo-600 font-medium">{studentData.term}, {studentData.academicYear}</p>
                     </div>
                 </div>
 

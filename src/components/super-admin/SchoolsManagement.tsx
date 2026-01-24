@@ -21,6 +21,7 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+
     // Form state
     const [showForm, setShowForm] = useState(false);
     const [editingSchool, setEditingSchool] = useState<School | null>(null);
@@ -34,6 +35,10 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
         adminPassword: '',
         adminName: '',
     });
+
+    // ===== START: ADD PASSWORD VISIBILITY STATE =====
+    const [showPassword, setShowPassword] = useState(false);
+    // ===== END: ADD PASSWORD VISIBILITY STATE =====
 
     // Load schools
     const loadSchools = async () => {
@@ -274,7 +279,7 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
                                     value={formData.phone}
                                     onChange={handleInputChange}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="+255 xxx xxx xxx"
+                                    placeholder="Enter School's phone number"
                                 />
                             </div>
                             <div>
@@ -305,7 +310,7 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
                                             onChange={handleInputChange}
                                             required
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                            placeholder="John Doe"
+                                            placeholder="Enter Admin Name"
                                         />
                                     </div>
                                     <div>
@@ -322,7 +327,7 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
                                             placeholder="admin@school.edu"
                                         />
                                     </div>
-                                    <div>
+                                    {/* <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">
                                             Password *
                                         </label>
@@ -336,6 +341,37 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             placeholder="At least 6 characters"
                                         />
+                                    </div> */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                                            Password *
+                                        </label>
+                                        {/* ===== START: UPDATED PASSWORD FIELD WITH TOGGLE ===== */}
+                                        <div className="relative">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                name="adminPassword"
+                                                value={formData.adminPassword}
+                                                onChange={handleInputChange}
+                                                required
+                                                minLength={6}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+                                                placeholder="At least 6 characters"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5"
+                                                title={showPassword ? "Hide password" : "Show password"}
+                                            >
+                                                {showPassword ? (
+                                                    <EyeOff className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                                                ) : (
+                                                    <Eye className="h-5 w-5 text-gray-500 hover:text-gray-700" />
+                                                )}
+                                            </button>
+                                        </div>
+                                        {/* ===== END: UPDATED PASSWORD FIELD WITH TOGGLE ===== */}
                                     </div>
                                 </div>
                                 <p className="text-sm text-gray-500 mt-2">

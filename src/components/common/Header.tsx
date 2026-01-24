@@ -1,5 +1,5 @@
 import React from 'react';
-import { BookOpen, Settings, Phone } from 'lucide-react';
+import { BookOpen, Settings, Phone, MessageSquare, LogIn, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom'; // Add this import
 
 interface HeaderProps {
@@ -45,31 +45,59 @@ const Header: React.FC<HeaderProps> = ({ onShowAdmin }) => {
                         {/* <Link to="/" className="hover:text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-50">
                             Check Results
                         </Link> */}
-                        <button
+                        {/* <button
                             onClick={handleLogin}
                             className="hover:text-indigo-600 transition-colors px-3 py-2 rounded-lg hover:bg-indigo-50"
                         >
                             Login
-                        </button>
-                        <button
-                            onClick={handleCreateAccount}
-                            className="border border-indigo-600 text-indigo-600 px-3 py-2 rounded-lg hover:bg-indigo-50 transition-colors"
-                        >
-                            Create Account
-                        </button>
-                        {/* <button
-                            onClick={onShowAdmin}
-                            className="hover:text-indigo-600 transition-colors flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-indigo-50"
-                        >
-                            <Settings className="w-4 h-4" />
-                            <span className="hidden sm:inline">Admin</span>
                         </button> */}
+                        {/* 1. Login: Clean & Minimal with Slide Effect */}
+                        {/* 1. Login: Bold Text with Magnetic Slide Effect */}
+                        {/* LOGIN BUTTON: Vibrant, Glamorous, but Compact */}
+                        <button
+                            onClick={handleLogin}
+                            className="group flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-indigo-100 shadow-sm hover:shadow-md hover:border-indigo-300 hover:bg-indigo-50/80 transition-all duration-300"
+                        >
+                            {/* Gradient Text for the 'Glamour' look */}
+                            <span className="font-bold text-sm bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
+                                Login
+                            </span>
+
+                            {/* Icon matches the gradient color */}
+                            <LogIn className="w-4 h-4 text-indigo-500 group-hover:text-indigo-700 group-hover:translate-x-0.5 transition-all duration-300" />
+                        </button>
+
+                        <button
+                        // onClick={handleCreateAccount}
+                        // className="group relative p-[2px] rounded-lg transition-transform duration-300 active:scale-95 hover:-translate-y-0.5"
+                        >
+                            {/* Animated Gradient Border */}
+                            {/* <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 rounded-lg opacity-75 group-hover:opacity-100 animate-gradient-xy" /> */}
+
+                            {/* Inner White Container */}
+                            {/* <div className="relative flex items-center gap-2 px-4 py-2 bg-white rounded-[6px] transition-colors duration-300 group-hover:bg-blue-50/30">
+                                <Sparkles className="w-4 h-4 text-blue-600 transition-transform duration-500 group-hover:rotate-12" />
+                                <span className="text-sm font-bold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">
+                                    Create Account
+                                </span>
+                            </div> */}
+                        </button>
+
                         <a
                             href="#contact"
-                            className="hover:text-indigo-600 transition-colors flex items-center gap-1"
+                            className="relative group hidden sm:inline-flex items-center gap-2 px-6 py-2.5 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(59,130,246,0.5)] hover:-translate-y-0.5"
                         >
-                            <Phone className="w-4 h-4" />
-                            <span className="hidden sm:inline">Contact</span>
+                            {/* Moving Gradient Background */}
+                            <div className="absolute inset-0 w-[200%] h-full bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 animate-gradient-xy" />
+
+                            {/* Shine Effect */}
+                            <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[1px]" />
+
+                            {/* Content */}
+                            <div className="relative flex items-center gap-2 text-white font-medium tracking-wide text-sm">
+                                <MessageSquare className="w-4 h-4 fill-white/20" />
+                                <span>Get in Touch</span>
+                            </div>
                         </a>
                     </div>
                 </div>

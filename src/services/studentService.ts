@@ -124,10 +124,30 @@ export interface SubjectRecord {
 }
 
 // ====================== PUBLIC FUNCTIONS (NO SCHOOL ID) ======================
+// export async function fetchStudentByExamNumber(examNumber: string): Promise<StudentData | null> {
+//     try {
+//         // const response = await fetch(`${API_BASE_URL}/api/students/results/${examNumber.toUpperCase()}`);
+//         const response = await fetch(`${API_BASE_URL}/api/students/results/${examNumber}`);
+//         if (!response.ok) return null;
+//         const data = await response.json();
+//         return data;
+//     } catch (error) {
+//         console.error('Failed to fetch student data:', error);
+//         return null;
+//     }
+// }
+
 export async function fetchStudentByExamNumber(examNumber: string): Promise<StudentData | null> {
     try {
-        // const response = await fetch(`${API_BASE_URL}/api/students/results/${examNumber.toUpperCase()}`);
-        const response = await fetch(`${API_BASE_URL}/api/students/results/${examNumber}`);
+        // ADD THESE LINES: Get school ID from localStorage
+        const schoolId = getSchoolId();
+        
+        // ADD THIS: Build URL with schoolId parameter
+        const url = schoolId 
+            ? `${API_BASE_URL}/api/students/results/${examNumber}?schoolId=${schoolId}`
+            : `${API_BASE_URL}/api/students/results/${examNumber}`;
+        
+        const response = await fetch(url);
         if (!response.ok) return null;
         const data = await response.json();
         return data;
@@ -454,14 +474,58 @@ export const fetchStudentsByClass = async (classId: string): Promise<any[]> => {
   }
 };
 
+// export const fetchClassResults = async (classId: string): Promise<any[]> => {
+//   try {
+//     const schoolId = getSchoolId();
+//     const url = schoolId ? `${API_BASE_URL}/api/students/class/${classId}/results?schoolId=${schoolId}` : `${API_BASE_URL}/api/students/class/${classId}/results`;
+    
+//     const res = await fetch(url, {
+//       headers: authHeaders()
+//     });
+//     if (!res.ok) {
+//       if (res.status === 404) {
+//         console.log('No results found for this class');
+//         return [];
+//       }
+//       throw new Error('Failed to fetch class results');
+//     }
+//     return await res.json();
+//   } catch (error) {
+//     console.error('Error fetching class results:', error);
+//     return [];
+//   }
+// };
+
 export const fetchClassResults = async (classId: string): Promise<any[]> => {
   try {
     const schoolId = getSchoolId();
     const url = schoolId ? `${API_BASE_URL}/api/students/class/${classId}/results?schoolId=${schoolId}` : `${API_BASE_URL}/api/students/class/${classId}/results`;
     
+    // Get teacher ID from localStorage
+    const userStr = localStorage.getItem('user');
+    let teacherId = '';
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        teacherId = user.id || ''; // Use user.id as teacher ID
+      } catch (e) {
+        console.error('Error parsing user:', e);
+      }
+    }
+    
+    const headers: Record<string, string> = {
+      ...authHeaders(),
+    };
+    
+    // Add teacher ID header if available
+    if (teacherId) {
+      headers['x-teacher-id'] = teacherId;
+    }
+    
     const res = await fetch(url, {
-      headers: authHeaders()
+      headers: headers
     });
+    
     if (!res.ok) {
       if (res.status === 404) {
         console.log('No results found for this class');

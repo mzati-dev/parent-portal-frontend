@@ -4,6 +4,7 @@ export interface StudentData {
     examNumber: string;
     class: string;
     term: string;
+    academicYear?: string; // <-- ADD THIS LINE
     photo: string;
     classRank: number;
     totalStudents: number;
