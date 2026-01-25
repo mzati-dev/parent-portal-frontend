@@ -81,8 +81,8 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
         try {
             const token = localStorage.getItem('token');
             const url = editingSchool
-                ? `http://localhost:3000/schools/${editingSchool.id}`
-                : 'http://localhost:3000/schools';
+                ? `https://eduspace-portal-backend.onrender.com/schools/${editingSchool.id}`
+                : 'https://eduspace-portal-backend.onrender.com/schools';
 
             const method = editingSchool ? 'PUT' : 'POST';
 
@@ -124,7 +124,7 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:3000/schools/${schoolId}`, {
+            const response = await fetch(`https://eduspace-portal-backend.onrender.com/schools/${schoolId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -144,7 +144,7 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
     const handleRestoreSchool = async (schoolId: string) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`http://localhost:3000/schools/${schoolId}/restore`, {
+            const response = await fetch(`https://eduspace-portal-backend.onrender.com/schools/${schoolId}/restore`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -157,6 +157,33 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
             loadSchools();
         } catch (err: any) {
             setError(err.message || 'Failed to restore school');
+        }
+    };
+
+    // Insert after handleRestoreSchool
+    const handlePermanentWipe = async (schoolId: string, schoolName: string) => {
+        const confirmed = window.confirm(
+            `⚠️ DANGER: You are about to PERMANENTLY delete "${schoolName}".\n\nThis will wipe all admins, teachers, students, and records. This cannot be undone.`
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const token = localStorage.getItem('token');
+            // Note: Change localhost to your Render URL if you are testing on production
+            const response = await fetch(`https://eduspace-portal-backend.onrender.com/schools/${schoolId}/permanent`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) throw new Error('Failed to wipe school data');
+
+            setSuccess('School and all related data wiped successfully!');
+            loadSchools(); // Refresh the list
+        } catch (err: any) {
+            setError(err.message || 'Wipe operation failed');
         }
     };
 
@@ -498,6 +525,14 @@ const SchoolsManagement: React.FC<SchoolsManagementProps> = ({ onSchoolSelect })
                                                     <Eye className="w-4 h-4" />
                                                 </button>
                                             )}
+                                            {/* ADD THE PERMANENT WIPE BUTTON HERE */}
+                                            <button
+                                                onClick={() => handlePermanentWipe(school.id, school.name)}
+                                                className="p-1.5 text-gray-400 hover:text-red-700 hover:bg-red-100 rounded ml-2 border-l pl-2"
+                                                title="Permanent Wipe (CASCADE)"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
