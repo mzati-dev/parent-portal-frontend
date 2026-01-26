@@ -436,7 +436,7 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
 
             // ===== FOOTER ===== (Same as ReportCard)
             const footerTitle = `${getAssessmentTitle(assessmentType)} Results Generated`;
-            const footerDesc = "This report card was generated based on the school's active grade calculation configuration.\nFor any questions or clarifications, please contact the school administration.";;
+            const footerDesc = "This assessment report was generated based on the school's active grade calculation configuration.\nFor any questions or clarifications, please contact the school administration.";;
             const generatedOn = `Generated on: ${new Date().toLocaleDateString('en-US', {
                 weekday: 'long',
                 year: 'numeric',
