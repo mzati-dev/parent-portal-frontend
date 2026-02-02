@@ -799,7 +799,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
 
             doc.text(
-                `Needs Improvement: ${weakestSubject ? weakestSubject.name : 'None'}`,
+                `Lowest Subject: ${weakestSubject ? weakestSubject.name : 'None'}`,
                 120,
                 y
             );
@@ -1278,7 +1278,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         </div> */}
 
                         <div className="bg-white p-3 rounded-lg">
-                            <p className="text-sm text-slate-500">Needs Improvement</p>
+                            <p className="text-sm text-slate-500">Lowest Subject</p>
                             <p className="font-bold text-amber-700">
                                 {(() => {
 

@@ -76,7 +76,7 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
 
             for (const student of students) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/students/${student.id}/assessments`);
+                    const response = await fetch(`https://eduspace-portal-backend.onrender.com/api/students/${student.id}/assessments`);
                     if (response.ok) {
                         const assessmentsData = await response.json();
 
