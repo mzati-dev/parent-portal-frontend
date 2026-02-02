@@ -107,18 +107,21 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
     };
 
     // CORRECTED: Calculate total marks scored for the assessment
-    const calculateTotalScored = (): string => {
+    const calculateTotalScored = (): number => {
         const subjectsWithScores = studentData.subjects.filter(subject =>
             hasValidScore(subject[assessmentType])
         );
 
-        if (subjectsWithScores.length === 0) return '0.0';
+        if (subjectsWithScores.length === 0) return 0;
 
         const total = subjectsWithScores.reduce((sum, subject) => {
             return sum + subject[assessmentType]!;
         }, 0);
 
-        return total.toFixed(1);
+
+        return Math.round(total);
+
+        // return total.toFixed(1);
     };
 
     // CORRECTED: Calculate average grade for the assessment
@@ -317,7 +320,8 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
                 tableBody.push([
                     'GRAND TOTAL',
                     String(totalSubjects * 100), // Total possible marks
-                    totalScored, // Total scored marks
+                    // totalScored, // Total scored marks
+                    String(totalScored), // Total scored marks
                     overallGrade,
                     overallRemark
                 ]);
@@ -368,7 +372,7 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
                 doc.text(`Score: ${bestSubject[assessmentType]}%`, 14, y + 6);
 
                 doc.text(
-                    `Needs Improvement: ${weakestSubject ? weakestSubject.name : 'None'}`,
+                    `Lowest Subject: ${weakestSubject ? weakestSubject.name : 'None'}`,
                     120,
                     y
                 );
