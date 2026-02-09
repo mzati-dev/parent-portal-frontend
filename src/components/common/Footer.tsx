@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
                             </div> */}
                             <div>
                                 <h4 className="text-lg font-bold">Eduspace Portal</h4>
-                                <p className="text-xs text-slate-400">Your window to academic success</p>
+                                <p className="text-xs text-slate-400">A window to your child's academic success</p>
                                 {/* <p className="text-xs text-slate-400">Student Results System</p> */}
                             </div>
                         </div>
@@ -39,7 +39,7 @@ const Footer: React.FC = () => {
                             </li>
                             <li className="flex items-center gap-2">
                                 <Phone className="w-4 h-4" />
-                                <span>+265 (0) 888 447 122</span>
+                                <span>+265 (0) 999 61 33 24</span>
                             </li>
                             <li className="flex items-center gap-2">
                                 <Mail className="w-4 h-4" />

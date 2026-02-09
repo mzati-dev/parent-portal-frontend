@@ -331,205 +331,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
         printWindow.document.close();
     };
 
-    // Handle PDF Download
-    // const handleDownloadPDF = async () => {
-    //     if (!reportCardRef.current) {
-    //         console.error('Report card ref not found');
-    //         return;
-    //     }
-
-    //     try {
-    //         const contentClone = reportCardRef.current.cloneNode(true) as HTMLElement;
-
-    //         const actionButtons = contentClone.querySelector('.action-buttons');
-    //         if (actionButtons) {
-    //             actionButtons.remove();
-    //         }
-
-    //         const tempContainer = document.createElement('div');
-    //         tempContainer.style.position = 'absolute';
-    //         tempContainer.style.left = '-9999px';
-    //         tempContainer.appendChild(contentClone);
-    //         document.body.appendChild(tempContainer);
-
-    //         const canvas = await html2canvas(contentClone, {
-    //             scale: 2,
-    //             useCORS: true,
-    //             logging: false,
-    //             backgroundColor: '#ffffff',
-    //             width: contentClone.scrollWidth,
-    //             height: contentClone.scrollHeight
-    //         });
-
-    //         document.body.removeChild(tempContainer);
-
-    //         const imgData = canvas.toDataURL('image/png');
-    //         const pdf = new jsPDF('p', 'mm', 'a4');
-
-    //         const pdfWidth = pdf.internal.pageSize.getWidth();
-    //         const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    //         pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-
-    //         const studentName = studentData.name || 'Student';
-    //         const term = studentData.term || 'Term';
-    //         const filename = `ReportCard_${studentName.replace(/\s+/g, '_')}_${term.replace(/\s+/g, '_')}.pdf`;
-
-    //         pdf.save(filename);
-
-    //     } catch (error) {
-    //         console.error('Error generating PDF:', error);
-    //         alert('Failed to generate PDF. Please try again.');
-    //     }
-    // };
-
-    // Handle PDF Download (Multi-page support fix)
-    // const handleDownloadPDF = async () => {
-    //     if (!reportCardRef.current) {
-    //         console.error('Report card ref not found');
-    //         return;
-    //     }
-
-    //     try {
-    //         const contentClone = reportCardRef.current.cloneNode(true) as HTMLElement;
-
-    //         // Remove buttons from the PDF
-    //         const actionButtons = contentClone.querySelector('.action-buttons');
-    //         if (actionButtons) {
-    //             actionButtons.remove();
-    //         }
-
-    //         // Create a specific container for the clone to ensure full height capture
-    //         const tempContainer = document.createElement('div');
-    //         tempContainer.style.position = 'absolute';
-    //         tempContainer.style.left = '-9999px';
-    //         tempContainer.style.top = '0';
-    //         tempContainer.style.width = '100%'; // Ensure it doesn't shrink
-    //         tempContainer.appendChild(contentClone);
-    //         document.body.appendChild(tempContainer);
-
-    //         const canvas = await html2canvas(contentClone, {
-    //             scale: 2, // Higher scale for better quality
-    //             useCORS: true,
-    //             logging: false,
-    //             backgroundColor: '#ffffff',
-    //             windowWidth: contentClone.scrollWidth,
-    //             windowHeight: contentClone.scrollHeight
-    //         });
-
-    //         // Cleanup
-    //         document.body.removeChild(tempContainer);
-
-    //         const imgData = canvas.toDataURL('image/png');
-    //         const pdf = new jsPDF('p', 'mm', 'a4');
-
-    //         const imgWidth = 210; // A4 width in mm
-    //         const pageHeight = 297; // A4 height in mm
-    //         const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-    //         let heightLeft = imgHeight;
-    //         let position = 0;
-
-    //         // Add first page
-    //         pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    //         heightLeft -= pageHeight;
-
-    //         // Loop to add subsequent pages if the content is too long
-    //         while (heightLeft >= 0) {
-    //             position = heightLeft - imgHeight;
-    //             pdf.addPage();
-    //             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-    //             heightLeft -= pageHeight;
-    //         }
-
-    //         const studentName = studentData.name || 'Student';
-    //         const term = studentData.term || 'Term';
-    //         const filename = `ReportCard_${studentName.replace(/\s+/g, '_')}_${term.replace(/\s+/g, '_')}.pdf`;
-
-    //         pdf.save(filename);
-
-    //     } catch (error) {
-    //         console.error('Error generating PDF:', error);
-    //         alert('Failed to generate PDF. Please try again.');
-    //     }
-    // };
-
-    // Handle PDF Download (Shrink to fit 1 A4 Page)
-    // const handleDownloadPDF = async () => {
-    //     if (!reportCardRef.current) {
-    //         console.error('Report card ref not found');
-    //         return;
-    //     }
-    //     // --- INSERT START ---
-    //     setIsDownloading(true);
-    //     await new Promise(resolve => setTimeout(resolve, 100));
-    //     // --- INSERT END ---
-
-    //     try {
-    //         const contentClone = reportCardRef.current.cloneNode(true) as HTMLElement;
-
-    //         // Remove buttons from the PDF
-    //         const actionButtons = contentClone.querySelector('.action-buttons');
-    //         if (actionButtons) {
-    //             actionButtons.remove();
-    //         }
-
-    //         const tempContainer = document.createElement('div');
-    //         tempContainer.style.position = 'absolute';
-    //         tempContainer.style.left = '-9999px';
-    //         tempContainer.style.top = '0';
-    //         tempContainer.style.width = '100%';
-    //         tempContainer.appendChild(contentClone);
-    //         document.body.appendChild(tempContainer);
-
-    //         const canvas = await html2canvas(contentClone, {
-    //             scale: 2, // High resolution
-    //             useCORS: true,
-    //             logging: false,
-    //             backgroundColor: '#ffffff',
-    //             windowWidth: contentClone.scrollWidth,
-    //             windowHeight: contentClone.scrollHeight
-    //         });
-
-    //         document.body.removeChild(tempContainer);
-
-    //         const imgData = canvas.toDataURL('image/png');
-    //         const pdf = new jsPDF('p', 'mm', 'a4');
-
-    //         const pdfWidth = 210; // A4 width in mm
-    //         const pdfHeight = 297; // A4 height in mm
-
-    //         // Calculate dimensions to fit width
-    //         let imgWidth = pdfWidth;
-    //         let imgHeight = (canvas.height * pdfWidth) / canvas.width;
-
-    //         // If the content is TALLER than A4, shrink it to fit the height
-    //         if (imgHeight > pdfHeight) {
-    //             const scaleFactor = pdfHeight / imgHeight;
-    //             imgWidth = imgWidth * scaleFactor;
-    //             imgHeight = pdfHeight;
-    //         }
-
-    //         // Add image (0, 0 is top-left)
-    //         pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-    //         const studentName = studentData.name || 'Student';
-    //         const term = studentData.term || 'Term';
-    //         const filename = `ReportCard_${studentName.replace(/\s+/g, '_')}_${term.replace(/\s+/g, '_')}.pdf`;
-
-    //         pdf.save(filename);
-
-    //     } catch (error) {
-    //         console.error('Error generating PDF:', error);
-    //         alert('Failed to generate PDF. Please try again.');
-    //     }
-    //     // --- INSERT START ---
-    //     finally {
-    //         setIsDownloading(false);
-    //     }
-    //     // --- INSERT END ---
-    // };
-
     const handleDownloadPDF = () => {
         setIsDownloading(true);
 
@@ -563,9 +364,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
             doc.text(`Exam Number: ${studentData.examNumber || 'N/A'}`, 14, y + 6);
             doc.text(`Class: ${studentData.class || 'N/A'}`, 14, y + 12);
 
-            // doc.text(`Academic Year: ${studentData.academicYear || 'N/A'}`, 120, y);
-            // doc.text(`Term: ${studentData.term || 'N/A'}`, 120, y + 6);
-            // doc.text(`School Name: ${schoolName || 'N/A'}`, 120, y + 12);
+
             doc.text(`Academic Year: ${studentData.academicYear || 'N/A'}`, 120, y);
             doc.text(`Term: ${studentData.term || 'N/A'}`, 120, y + 6);
             doc.text(`Total Enrollment: ${studentData.totalStudents || 'N/A'}`, 120, y + 12);
@@ -592,35 +391,13 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
             // ===== SUMMARY =====
 
-            // // 🔴 ADDED
-            // doc.setFont('helvetica', 'bold');
-            // doc.text('SUMMARY', 14, y);
-            // y += 4;
-            // doc.setFont('helvetica', 'normal');
 
-            // doc.text(`Final Average: ${calculateOverallAverage()}%`, 14, y);
-            // doc.text(
-            //     `Class Position: ${studentData.classRank}/${studentData.totalStudents}`,
-            //     120,
-            //     y
-            // );
-
-            // y += 6;
-
-            // doc.text(`Overall Status: ${getOverallRemark()}`, 14, y);
-            // doc.text(`Overall Grade: ${getOverallGrade()}`, 120, y);
-
-            // y += 8;
-            // 🔴 SUMMARY - swapped as per your instructions
             doc.setFont('helvetica', 'bold');
             doc.text('SUMMARY', 14, y);
             y += 4;
             doc.setFont('helvetica', 'normal');
 
-            // Top row
-            // doc.text(`Class Position: ${studentData.classRank}/${studentData.totalStudents}`, 14, y);
-            // doc.text(`Overall Status: ${getOverallRemark()}`, 120, y);
-            // Top row - left: Class Position only
+
             doc.text(
                 `Class Position: ${studentData.classRank || 'N/A'}`,
                 14,
@@ -643,9 +420,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
             y += 8; // spacing before next section
 
 
-            // ===== RESULTS TABLE =====
 
-            // ===== RESULTS TABLE =====
 
             // 🔴 Section Title
             doc.setFont('helvetica', 'bold');
@@ -693,55 +468,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
             y = (doc as any).lastAutoTable.finalY + 8; // update y for next section
 
 
-            // // 🔴 ADDED
-            // doc.setFont('helvetica', 'bold');
-            // doc.text('RESULTS', 14, y);
-            // y += 3;
-            // doc.setFont('helvetica', 'normal');
-
-            // const tableBody = studentData.subjects
-            //     .filter(sub => sub.qa1 > 0 || sub.qa2 > 0 || sub.endOfTerm > 0)
-            //     .map(sub => {
-            //         const avg = calculateSubjectAverage(sub).toFixed(1);
-            //         return [
-            //             sub.name,
-            //             '100',
-            //             avg,
-            //             getSubjectGrade(sub),
-            //             getSubjectRemark(sub),
-            //         ];
-            //     });
-
-            // autoTable(doc, {
-            //     startY: y,
-            //     head: [['Subject', 'Total Marks', 'Marks Scored', 'Grade', 'Remark']],
-            //     body: tableBody,
-            //     theme: 'striped',
-            // });
-
-            // y = (doc as any).lastAutoTable.finalY + 8;
-
-            // ===== GRAND TOTAL =====
-            // doc.setFont('helvetica', 'bold');
-            // doc.text('GRAND TOTAL', 14, y);
-            // doc.text(
-            //     String(studentData.subjects.length * 100),
-            //     70,
-            //     y,
-            //     { align: 'center' }
-            // );
-            // doc.text(
-            //     String(calculateGrandTotal()),
-            //     105,
-            //     y,
-            //     { align: 'center' }
-            // );
-            // doc.text(getOverallGrade(), 140, y, { align: 'center' });
-            // doc.text(getOverallRemark(), 170, y, { align: 'center' });
-
-            // y += 14;
-            // doc.setFont('helvetica', 'normal');
-
             // ===== PERFORMANCE ANALYSIS =====
 
             // 🔴 ADDED
@@ -754,17 +480,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 calculateSubjectAverage(cur) > calculateSubjectAverage(best) ? cur : best
             );
 
-            // const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-            // const weakSubjects = studentData.subjects.filter(
-            //     s => calculateSubjectAverage(s) < passMark
-            // );
 
-            // const weakestSubject =
-            //     weakSubjects.length > 0
-            //         ? weakSubjects.reduce((w, c) =>
-            //             calculateSubjectAverage(c) < calculateSubjectAverage(w) ? c : w
-            //         )
-            //         : null;
 
             const passMark = studentData.gradeConfiguration?.pass_mark || 50;
             // Get subjects with grades C, D, or F
@@ -787,15 +503,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 14,
                 y + 6
             );
-            // const strongestText = `Strongest Subject: ${bestSubject.name}`;
-            // const scoreText = `Score: ${Math.round(calculateSubjectAverage(bestSubject))}%`;
 
-            // // Draw the subject
-            // doc.text(strongestText, 14, y);
-
-            // Draw the score right after the subject
-            // const xOffset = 14 + doc.getTextWidth(strongestText) + 5; // 5 = small space
-            // doc.text(scoreText, xOffset, y);
 
 
             doc.text(
@@ -910,21 +618,6 @@ const ReportCard: React.FC<ReportCardProps> = ({
             y += 6; // instead of 10
 
 
-
-            // ===== FOOTER =====
-            // doc.text(
-
-            //     `Generated on: ${new Date().toLocaleDateString('en-US', {
-            //         weekday: 'long',
-            //         year: 'numeric',
-            //         month: 'long',
-            //         day: 'numeric',
-            //     })}`,
-            //     pageWidth / 2,
-            //     y,
-            //     { align: 'center' }
-            // );
-
             // ===== FOOTER =====
             const footerTitle = 'Report Card Generated';
             const footerDesc =
@@ -1010,20 +703,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
 
                 {showActions && (
                     <div className="flex gap-2 action-buttons">
-                        {/* <button
-                            onClick={handlePrint}
-                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium flex items-center gap-2"
-                        >
-                            <Printer className="w-4 h-4" />
-                            Print
-                        </button> */}
-                        {/* <button
-                            onClick={handleDownloadPDF}
-                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center gap-2"
-                        >
-                            <Download className="w-4 h-4" />
-                            Download PDF
-                        </button> */}
+
                         <button
                             onClick={handleDownloadPDF}
                             disabled={isDownloading}
@@ -1070,12 +750,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                                     {studentData.class || 'N/A'}
                                 </span>
                             </div>
-                            {/* <div className="flex justify-between border-b border-blue-100 pb-2">
-                                <span className="text-blue-700 font-medium">Class Rank:</span>
-                                <span className="text-blue-900 font-semibold">
-                                    {studentData.classRank || 'N/A'} / {studentData.totalStudents || 'N/A'}
-                                </span>
-                            </div> */}
+
                         </div>
                     </div>
 
@@ -1094,12 +769,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                                     {studentData.term || 'N/A'}
                                 </span>
                             </div>
-                            {/* <div className="flex justify-between border-b border-indigo-100 pb-2">
-                                <span className="text-indigo-700 font-medium">School Name:</span>
-                                <span className="text-indigo-900 font-semibold">
-                                    {getSchoolNameFromLocalStorage()}
-                                </span>
-                            </div> */}
+
 
                             {/* DYNAMIC SCHOOL NAME */}
                             <div className="flex justify-between border-b border-indigo-100 pb-2">
@@ -1108,16 +778,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                                     {schoolName}
                                 </span>
                             </div>
-                            {/* <div className="flex justify-between border-b border-indigo-100 pb-2">
-                                <span className="text-indigo-700 font-medium">Report Date:</span>
-                                <span className="text-indigo-900 font-semibold">
-                                    {new Date().toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric'
-                                    })}
-                                </span>
-                            </div> */}
+
                         </div>
                     </div>
                 </div>
@@ -1364,16 +1025,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                         </div>
                     </div>
                 </div>
-                {/* <div className="mt-4 bg-white p-3 rounded-lg border border-slate-100">
-                    <p className="text-xs text-slate-500 mb-1">Teacher's Remark</p>
-                    <p className="text-sm text-slate-700 italic">
-                        "{getOverallGrade() === 'A' ? 'An outstanding performance! Keep maintaining this high standard.' :
-                            getOverallGrade() === 'B' ? 'A very good result. With a little more push, you can reach excellence.' :
-                                getOverallGrade() === 'C' ? 'A satisfactory performance, but there is room for improvement.' :
-                                    getOverallGrade() === 'D' ? 'You have passed, but more effort is needed to improve grades.' :
-                                        'Please focus more on your studies and seek help in weak subjects.'}"
-                    </p>
-                </div> */}
+
                 <div className="mt-4 bg-slate-50 p-4 rounded-lg border border-indigo-100">
                     {/* Label with Indigo Color, Uppercase, and Letter Spacing */}
                     <p className="text-xs font-bold text-indigo-600 tracking-wide mb-2">
@@ -1461,13 +1113,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 </div>
             </div>
 
-            {/* <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 border border-slate-200">
-                <h5 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                    <User className="w-5 h-5 text-indigo-600" />
-                    Teacher's Remarks
-                </h5>
-                <p className="text-slate-600 italic">"{studentData.teacherRemarks}"</p>
-            </div> */}
+
 
 
             <div className="bg-slate-900 text-white rounded-xl p-6">

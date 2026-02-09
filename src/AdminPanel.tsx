@@ -710,6 +710,55 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     //     }
     // };
 
+
+    // const fixAllRanksOnce = async () => {
+    //     for (const classItem of classes) {
+    //         await calculateAndUpdateRanks(classItem.id, classItem.term);
+    //     }
+    //     alert('All ranks updated!');
+    // };
+
+    const fixAllRanksOnce = async () => {
+        // DEBUG 1: Did the button click actually register?
+        alert('1. Button was clicked! Starting process...');
+
+        // DEBUG 2: Do we have classes?
+        console.log('Classes data:', classes);
+        if (!classes || classes.length === 0) {
+            alert('STOPPED: The "classes" list is empty. Please wait for the page to load fully or refresh.');
+            return;
+        }
+
+        alert(`2. Found ${classes.length} classes. Starting loop...`);
+        setSavingResults(true); // Using your existing loading state
+
+        try {
+            let count = 0;
+            for (const classItem of classes) {
+                // DEBUG 3: Loop progress
+                console.log(`Processing ${classItem.name}...`);
+
+                await calculateAndUpdateRanks(
+                    classItem.id,
+                    classItem.term || 'Term 1, 2024/2025'
+                );
+                count++;
+            }
+
+            // DEBUG 4: Finished
+            alert(`3. Success! Updated ranks for ${count} classes.`);
+
+            // IMPORTANT: Reload data to see changes
+            window.location.reload();
+
+        } catch (err: any) {
+            console.error(err);
+            alert(`ERROR: ${err.message}`);
+        } finally {
+            setSavingResults(false);
+        }
+    };
+
     // Grade config handlers
     const handleSaveConfig = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -799,6 +848,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                 <AdminTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+                {/* 👇 ADD THE BUTTON RIGHT HERE 👇 */}
+                <div className="mt-4 flex justify-center">
+                    <button
+                        onClick={fixAllRanksOnce}
+                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                    >
+                        🔄 Fix All Rankings (One-Time)
+                    </button>
+                </div>
+                {/* 👆 ADDED 👆 */}
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
