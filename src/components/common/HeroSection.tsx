@@ -69,7 +69,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
                         <div className="mt-3 flex items-start justify-start gap-1.5 text-sm">
                             <AlertCircle className="w-4 h-4 shrink-0 text-amber-300 mt-0.5" />
                             <p className="text-indigo-100">
-                                <span className="font-semibold">Use dashes (-)</span>, not underscores.
+                                <span className="font-semibold">Use dashes (-)</span>, not underscores ( _ ).
                                 Example: <span className="font-mono font-bold bg-indigo-800/50 px-1.5 py-0.5 rounded">6cf-26-0101</span>
                                 {' '}(not <span className="font-mono">6cf_26_0101</span>)
                             </p>
