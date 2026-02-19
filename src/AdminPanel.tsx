@@ -382,14 +382,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 const subjectId = a.subject_id || a.subject?.id;
                 // Get assessment type - could be different naming
                 const assessmentType = a.assessment_type || a.assessmentType;
-                const score = a.score || 0;
+                const score = a.score;
+                const isAbsent = a.isAbsent || false;  // 👈 Add this
 
                 if (subjectId) {
                     const existing = assessmentMap.get(subjectId);
                     if (existing) {
-                        if (assessmentType === 'qa1') existing.qa1 = score;
-                        if (assessmentType === 'qa2') existing.qa2 = score;
-                        if (assessmentType === 'end_of_term') existing.end_of_term = score;
+                        //     if (assessmentType === 'qa1') existing.qa1 = score;
+                        //     if (assessmentType === 'qa2') existing.qa2 = score;
+                        //     if (assessmentType === 'end_of_term') existing.end_of_term = score;
+                        // }
+
+                        if (assessmentType === 'qa1') {
+                            // existing.qa1 = score;
+                            existing.qa1 = score !== undefined ? score : null;
+                            existing.qa1_absent = isAbsent;  // 👈 Add this
+                        }
+                        if (assessmentType === 'qa2') {
+                            // existing.qa2 = score;
+                            existing.qa2 = score !== undefined ? score : null;
+                            existing.qa2_absent = isAbsent;  // 👈 Add this
+                        }
+                        if (assessmentType === 'end_of_term') {
+                            // existing.end_of_term = score;
+                            existing.end_of_term = score !== undefined ? score : null;
+                            existing.end_of_term_absent = isAbsent;  // 👈 Add this
+                        }
                     }
                 }
             });

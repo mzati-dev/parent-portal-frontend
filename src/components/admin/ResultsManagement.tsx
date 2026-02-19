@@ -89,7 +89,14 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                 const assessmentType = assessment.assessment_type || assessment.assessmentType;
                                 const score = assessment.score || 0;
 
-                                if (score > 0) {
+                                // if (score > 0) {
+                                //     if (assessmentType === 'qa1') qa1Count++;
+                                //     if (assessmentType === 'qa2') qa2Count++;
+                                //     if (assessmentType === 'end_of_term') endTermCount++;
+                                // }
+
+                                // With this:
+                                if ((score !== null && score !== undefined) || assessment.absent) {
                                     if (assessmentType === 'qa1') qa1Count++;
                                     if (assessmentType === 'qa2') qa2Count++;
                                     if (assessmentType === 'end_of_term') endTermCount++;
@@ -395,7 +402,8 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                         {assessment.qa1_absent ? (
                                                             // Show AB badge when absent
                                                             <>
-                                                                <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-slate-100 text-slate-600 font-medium">
+                                                                {/* <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-slate-100 text-slate-600 font-medium"> */}
+                                                                <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-emerald-50 border-emerald-300 text-slate-600 font-medium">
                                                                     AB
                                                                 </div>
                                                                 <button
@@ -432,7 +440,11 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                                             }
                                                                         }
                                                                     }}
-                                                                    className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${assessment.qa1 > 0 ? 'border-emerald-300 bg-emerald-50' : 'border-slate-300'
+                                                                    // className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${assessment.qa1 > 0 ? 'border-emerald-300 bg-emerald-50' : 'border-slate-300'
+                                                                    //     }`}
+                                                                    // FIX 2a: Apply colored background for ANY score including 0
+                                                                    // Previously only applied for > 0, now applies for >= 0
+                                                                    className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${(assessment.qa1 !== null && assessment.qa1 >= 0) ? 'border-emerald-300 bg-emerald-50' : 'border-slate-300'
                                                                         }`}
                                                                     placeholder=""
                                                                 />
@@ -450,7 +462,16 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                             </>
                                                         )}
 
-                                                        {assessment.qa1 > 0 && !assessment.qa1_absent && (
+
+                                                        {/* FIX 2b: Show colored dot for ANY 
+                                                        
+                                                                  {assessment.qa1 > 0 && !assessment.qa1_absent && (
+                                                            <div className="absolute top-3 left-3 w-2 h-2 bg-emerald-500 rounded-full"></div>
+                                                        )}
+
+                                                        score including 0 */}
+                                                        {/* Previously only showed for > 0, now shows for >= 0 */}
+                                                        {(assessment.qa1 !== null && assessment.qa1 >= 0) && !assessment.qa1_absent && (
                                                             <div className="absolute top-3 left-3 w-2 h-2 bg-emerald-500 rounded-full"></div>
                                                         )}
                                                     </div>
@@ -477,7 +498,8 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                     <div className="relative flex items-center justify-center gap-1">
                                                         {assessment.qa2_absent ? (
                                                             <>
-                                                                <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-slate-100 text-slate-600 font-medium">
+                                                                {/* <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-slate-100 text-slate-600 font-medium"> */}
+                                                                <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-blue-50 border-blue-300 text-slate-600 font-medium">
                                                                     AB
                                                                 </div>
                                                                 <button
@@ -508,7 +530,10 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                                             }
                                                                         }
                                                                     }}
-                                                                    className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${assessment.qa2 > 0 ? 'border-blue-300 bg-blue-50' : 'border-slate-300'
+                                                                    // className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${assessment.qa2 > 0 ? 'border-blue-300 bg-blue-50' : 'border-slate-300'
+                                                                    //     }`}
+                                                                    // FIX 3a: Apply colored background for ANY score including 0
+                                                                    className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${(assessment.qa2 !== null && assessment.qa2 >= 0) ? 'border-blue-300 bg-blue-50' : 'border-slate-300'
                                                                         }`}
                                                                     placeholder=""
                                                                 />
@@ -523,7 +548,15 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                             </>
                                                         )}
 
-                                                        {assessment.qa2 > 0 && !assessment.qa2_absent && (
+
+
+                                                        {/* FIX 3b: Show colored dot 
+                                                        
+                                                         {assessment.qa2 > 0 && !assessment.qa2_absent && (
+                                                            <div className="absolute top-3 left-3 w-2 h-2 bg-blue-500 rounded-full"></div>
+                                                        )}
+                                                        for ANY score including 0 */}
+                                                        {(assessment.qa2 !== null && assessment.qa2 >= 0) && !assessment.qa2_absent && (
                                                             <div className="absolute top-3 left-3 w-2 h-2 bg-blue-500 rounded-full"></div>
                                                         )}
                                                     </div>
@@ -551,7 +584,8 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                     <div className="relative flex items-center justify-center gap-1">
                                                         {assessment.end_of_term_absent ? (
                                                             <>
-                                                                <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-slate-100 text-slate-600 font-medium">
+                                                                {/* <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-slate-100 text-slate-600 font-medium"> */}
+                                                                <div className="w-20 px-3 py-2 border rounded-lg text-center mx-auto block bg-amber-50 border-amber-300 text-slate-600 font-medium">
                                                                     AB
                                                                 </div>
                                                                 <button
@@ -582,7 +616,10 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                                             }
                                                                         }
                                                                     }}
-                                                                    className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${assessment.end_of_term > 0 ? 'border-amber-300 bg-amber-50' : 'border-slate-300'
+                                                                    // className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${assessment.end_of_term > 0 ? 'border-amber-300 bg-amber-50' : 'border-slate-300'
+                                                                    //     }`}
+                                                                    // FIX 4a: Apply colored background for ANY score including 0
+                                                                    className={`w-20 px-3 py-2 border rounded-lg text-center focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 mx-auto block ${(assessment.end_of_term !== null && assessment.end_of_term >= 0) ? 'border-amber-300 bg-amber-50' : 'border-slate-300'
                                                                         }`}
                                                                     placeholder=""
                                                                 />
@@ -597,7 +634,16 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                             </>
                                                         )}
 
-                                                        {assessment.end_of_term > 0 && !assessment.end_of_term_absent && (
+
+
+                                                        {/* FIX 4b: Show colored dot 
+                                                        
+                                                          {assessment.end_of_term > 0 && !assessment.end_of_term_absent && (
+                                                            <div className="absolute top-3 left-3 w-2 h-2 bg-amber-500 rounded-full"></div>
+                                                        )}
+                                                        
+                                                        for ANY score including 0 */}
+                                                        {(assessment.end_of_term !== null && assessment.end_of_term >= 0) && !assessment.end_of_term_absent && (
                                                             <div className="absolute top-3 left-3 w-2 h-2 bg-amber-500 rounded-full"></div>
                                                         )}
                                                     </div>
