@@ -165,6 +165,9 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                 fetchStudentReportCard(student.id, student.term || 'Term 1, 2024/2025')
             ]);
 
+            // 👇 ADD LOG 1 HERE
+            console.log('1. RAW DATA FROM BACKEND:', JSON.stringify(assessmentsData, null, 2));
+
             // Get subjects teacher is assigned to teach in THIS specific class
             const assignedSubjectIds = assignments
                 .filter(a => a.classId === student.class?.id)
@@ -195,7 +198,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                 const subjectId = a.subject_id || a.subject?.id;
                 const assessmentType = a.assessment_type || a.assessmentType;
                 const score = a.score;
-                const absent = a.absent || false;
+                // const absent = a.absent || false;
+                const absent = a.isAbsent === true || a.absent === true;  // Check both possible names
 
                 // Only include if teacher is assigned to this subject
                 if (subjectId && assignedSubjectIds.includes(subjectId)) {
@@ -218,6 +222,9 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
             });
 
             setAssessments(Array.from(assessmentMap.values()));
+
+            // 👇 ADD LOG 2 HERE
+            console.log('2. MAPPED ASSESSMENTS:', JSON.stringify(Array.from(assessmentMap.values()), null, 2));
 
             // Set report card data (or defaults)
             if (reportCardData) {
@@ -335,6 +342,14 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
 
                 if (!isAssignedSubject) continue; // Skip if not assigned
 
+                console.log('3a. SENDING QA1 TO BACKEND:', {
+                    student_id: selectedStudent.id,
+                    subject_id: assessment.subject_id,
+                    assessment_type: 'qa1',
+                    score: assessment.qa1,
+                    is_absent: assessment.qa1_absent
+                });
+
                 // Save QA1
                 await upsertAssessment({
                     student_id: selectedStudent.id,
@@ -342,7 +357,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     assessment_type: 'qa1',
                     score: assessment.qa1,
                     grade: assessment.qa1 !== null ? calculateGrade(assessment.qa1, passMark) : null,
-                    absent: assessment.qa1_absent || false
+                    // absent: assessment.qa1_absent || false
+                    is_absent: assessment.qa1_absent || false
                 });
 
                 // Save QA2
@@ -352,7 +368,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     assessment_type: 'qa2',
                     score: assessment.qa2,
                     grade: assessment.qa2 !== null ? calculateGrade(assessment.qa2, passMark) : null,
-                    absent: assessment.qa2_absent || false
+                    // absent: assessment.qa2_absent || false
+                    is_absent: assessment.qa2_absent || false
                 });
 
                 // Save End of Term
@@ -362,7 +379,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     assessment_type: 'end_of_term',
                     score: assessment.end_of_term,
                     grade: assessment.end_of_term !== null ? calculateGrade(assessment.end_of_term, passMark) : null,
-                    absent: assessment.end_of_term_absent || false
+                    // absent: assessment.end_of_term_absent || false
+                    is_absent: assessment.end_of_term_absent || false
                 });
             }
 
