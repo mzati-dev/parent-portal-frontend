@@ -318,6 +318,104 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
      * - Saves report card only if teacher is class teacher
      * - Triggers rank recalculation
      */
+    // const saveAllResults = async () => {
+    //     if (!selectedStudent) return;
+
+    //     // Verify teacher has access to this student's class
+    //     const isAssignedToClass = assignments.some(a => a.classId === selectedStudent.class?.id);
+    //     if (!isAssignedToClass) {
+    //         showMessage('You are not assigned to this student\'s class', true);
+    //         return;
+    //     }
+
+    //     setSavingResults(true);
+    //     try {
+    //         const passMark = activeConfig?.pass_mark || 50;
+
+    //         // Save each assessment for subjects teacher is assigned to
+    //         for (const assessment of assessments) {
+    //             // Double-check teacher is assigned to this subject
+    //             const isAssignedSubject = assignments.some(a =>
+    //                 a.subjectId === assessment.subject_id &&
+    //                 a.classId === selectedStudent.class?.id
+    //             );
+
+    //             if (!isAssignedSubject) continue; // Skip if not assigned
+
+    //             console.log('3a. SENDING QA1 TO BACKEND:', {
+    //                 student_id: selectedStudent.id,
+    //                 subject_id: assessment.subject_id,
+    //                 assessment_type: 'qa1',
+    //                 score: assessment.qa1,
+    //                 is_absent: assessment.qa1_absent
+    //             });
+
+    //             // Save QA1
+    //             await upsertAssessment({
+    //                 student_id: selectedStudent.id,
+    //                 subject_id: assessment.subject_id,
+    //                 assessment_type: 'qa1',
+    //                 score: assessment.qa1,
+    //                 grade: assessment.qa1 !== null ? calculateGrade(assessment.qa1, passMark) : null,
+    //                 // absent: assessment.qa1_absent || false
+    //                 is_absent: assessment.qa1_absent || false
+    //             });
+
+    //             // Save QA2
+    //             await upsertAssessment({
+    //                 student_id: selectedStudent.id,
+    //                 subject_id: assessment.subject_id,
+    //                 assessment_type: 'qa2',
+    //                 score: assessment.qa2,
+    //                 grade: assessment.qa2 !== null ? calculateGrade(assessment.qa2, passMark) : null,
+    //                 // absent: assessment.qa2_absent || false
+    //                 is_absent: assessment.qa2_absent || false
+    //             });
+
+    //             // Save End of Term
+    //             await upsertAssessment({
+    //                 student_id: selectedStudent.id,
+    //                 subject_id: assessment.subject_id,
+    //                 assessment_type: 'end_of_term',
+    //                 score: assessment.end_of_term,
+    //                 grade: assessment.end_of_term !== null ? calculateGrade(assessment.end_of_term, passMark) : null,
+    //                 // absent: assessment.end_of_term_absent || false
+    //                 is_absent: assessment.end_of_term_absent || false
+    //             });
+    //         }
+
+    //         // Save report card ONLY if teacher is a class teacher
+    //         if (isUserClassTeacher) {
+    //             await upsertReportCard({
+    //                 student_id: selectedStudent.id,
+    //                 term: selectedStudent.term || 'Term 1, 2024/2025',
+    //                 days_present: reportCard.days_present,
+    //                 days_absent: reportCard.days_absent,
+    //                 days_late: reportCard.days_late,
+    //                 teacher_remarks: reportCard.teacher_remarks
+    //             });
+    //         }
+
+    //         // Trigger automatic rank recalculation for the class
+    //         if (selectedStudent.class?.id) {
+    //             await calculateAndUpdateRanks(
+    //                 selectedStudent.class.id,
+    //                 selectedStudent.term || 'Term 1, 2024/2025'
+    //             );
+    //         }
+
+    //         showMessage('Results saved and ranks auto-calculated!');
+
+    //         // Reload to show updated data
+    //         loadStudentResults(selectedStudent);
+    //     } catch (err: any) {
+    //         showMessage(err.message || 'Failed to save results', true);
+    //         console.error('Error saving results:', err);
+    //     } finally {
+    //         setSavingResults(false);
+    //     }
+    // };
+
     const saveAllResults = async () => {
         if (!selectedStudent) return;
 
@@ -340,14 +438,15 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     a.classId === selectedStudent.class?.id
                 );
 
-                if (!isAssignedSubject) continue; // Skip if not assigned
+                if (!isAssignedSubject) continue;
 
-                console.log('3a. SENDING QA1 TO BACKEND:', {
+                console.log('Saving QA1:', {
                     student_id: selectedStudent.id,
                     subject_id: assessment.subject_id,
                     assessment_type: 'qa1',
-                    score: assessment.qa1,
-                    is_absent: assessment.qa1_absent
+                    score: assessment.qa1_absent ? 0 : assessment.qa1, // FIX: Send 0 when absent
+                    grade: assessment.qa1 !== null ? calculateGrade(assessment.qa1, passMark) : null,
+                    is_absent: assessment.qa1_absent || false
                 });
 
                 // Save QA1
@@ -355,9 +454,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     student_id: selectedStudent.id,
                     subject_id: assessment.subject_id,
                     assessment_type: 'qa1',
-                    score: assessment.qa1,
+                    score: assessment.qa1_absent ? 0 : assessment.qa1, // FIX: Send 0 when absent
                     grade: assessment.qa1 !== null ? calculateGrade(assessment.qa1, passMark) : null,
-                    // absent: assessment.qa1_absent || false
                     is_absent: assessment.qa1_absent || false
                 });
 
@@ -366,9 +464,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     student_id: selectedStudent.id,
                     subject_id: assessment.subject_id,
                     assessment_type: 'qa2',
-                    score: assessment.qa2,
+                    score: assessment.qa2_absent ? 0 : assessment.qa2, // FIX: Send 0 when absent
                     grade: assessment.qa2 !== null ? calculateGrade(assessment.qa2, passMark) : null,
-                    // absent: assessment.qa2_absent || false
                     is_absent: assessment.qa2_absent || false
                 });
 
@@ -377,9 +474,8 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                     student_id: selectedStudent.id,
                     subject_id: assessment.subject_id,
                     assessment_type: 'end_of_term',
-                    score: assessment.end_of_term,
+                    score: assessment.end_of_term_absent ? 0 : assessment.end_of_term, // FIX: Send 0 when absent
                     grade: assessment.end_of_term !== null ? calculateGrade(assessment.end_of_term, passMark) : null,
-                    // absent: assessment.end_of_term_absent || false
                     is_absent: assessment.end_of_term_absent || false
                 });
             }
