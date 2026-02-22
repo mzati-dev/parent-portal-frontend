@@ -16,14 +16,31 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ studentData }) => {
         return 'text-red-600 bg-red-50';
     };
 
+    // const hasAssessmentScores = (assessmentType: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
+    //     if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
+    //         return false;
+    //     }
+
+    //     return studentData.subjects.some(subject => {
+    //         const score = subject[assessmentType];
+    //         return score !== null && score !== undefined && score > 0;
+    //     });
+    // };
+
     const hasAssessmentScores = (assessmentType: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
-        if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
-            return false;
-        }
+        if (!studentData || !studentData.subjects || studentData.subjects.length === 0) return false;
 
         return studentData.subjects.some(subject => {
             const score = subject[assessmentType];
-            return score !== null && score !== undefined && score > 0;
+            const absentFlag = assessmentType === 'qa1' ? subject.qa1_absent
+                : assessmentType === 'qa2' ? subject.qa2_absent
+                    : subject.endOfTerm_absent;
+
+            if (absentFlag) return true;
+
+            if (typeof score === 'string' && score === 'AB') return true;
+
+            return typeof score === 'number';
         });
     };
 

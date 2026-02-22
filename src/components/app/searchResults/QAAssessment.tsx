@@ -94,41 +94,88 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
         return 'F';
     };
 
-    const calculateAverage = (subjects: StudentData['subjects'], type: 'qa1' | 'qa2' | 'endOfTerm'): string => {
+    // const calculateAverage = (subjects: StudentData['subjects'], type: 'qa1' | 'qa2' | 'endOfTerm'): string => {
+    //     const validSubjects = subjects.filter(s => {
+    //         const score = s[type];
+    //         return score !== null && score !== undefined && score > 0;
+    //     });
+
+    //     if (validSubjects.length === 0) return 'N/A';
+
+    //     const total = validSubjects.reduce((acc, s) => acc + s[type], 0);
+    //     return (total / validSubjects.length).toFixed(1);
+    // };
+
+    const calculateAverage = (
+        subjects: StudentData['subjects'],
+        type: 'qa1' | 'qa2' | 'endOfTerm'
+    ): string => {
+
         const validSubjects = subjects.filter(s => {
             const score = s[type];
-            return score !== null && score !== undefined && score > 0;
+            const isAbsent =
+                type === 'qa1' ? s.qa1_absent :
+                    type === 'qa2' ? s.qa2_absent :
+                        s.endOfTerm_absent;
+
+            return !isAbsent && score !== null && score !== undefined;
         });
 
         if (validSubjects.length === 0) return 'N/A';
 
         const total = validSubjects.reduce((acc, s) => acc + s[type], 0);
+
         return (total / validSubjects.length).toFixed(1);
     };
 
     // CORRECTED: Calculate total marks scored for the assessment
+    // const calculateTotalScored = (): number => {
+    //     // const subjectsWithScores = studentData.subjects.filter(subject =>
+    //     //     hasValidScore(subject[assessmentType])
+    //     // );
+
+    //     const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s, assessmentType))
+
+
+    //     if (subjectsWithScores.length === 0) return 0;
+
+    //     const total = subjectsWithScores.reduce((sum, subject) => {
+    //         return sum + subject[assessmentType]!;
+    //     }, 0);
+
+
+    //     return Math.round(total);
+
+    //     // return total.toFixed(1);
+    // };
+
     const calculateTotalScored = (): number => {
-        const subjectsWithScores = studentData.subjects.filter(subject =>
-            hasValidScore(subject[assessmentType])
+        const subjectsWithScores = studentData.subjects.filter(s =>
+            hasValidScore(s, assessmentType)
         );
 
         if (subjectsWithScores.length === 0) return 0;
 
         const total = subjectsWithScores.reduce((sum, subject) => {
-            return sum + subject[assessmentType]!;
+            const score = subject[assessmentType];
+
+            // Do not add AB to total
+            if (typeof score !== 'number') return sum;
+
+            return sum + score;
         }, 0);
 
-
         return Math.round(total);
-
-        // return total.toFixed(1);
     };
 
     // CORRECTED: Calculate average grade for the assessment
     const calculateAssessmentAverage = (): string => {
-        const subjectsWithScores = studentData.subjects.filter(subject =>
-            hasValidScore(subject[assessmentType])
-        );
+        // const subjectsWithScores = studentData.subjects.filter(subject =>
+        //     hasValidScore(subject[assessmentType])
+        // );
+
+        const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s, assessmentType))
+
 
         if (subjectsWithScores.length === 0) return 'N/A';
 
@@ -139,17 +186,70 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
         return (total / subjectsWithScores.length).toFixed(1);
     };
 
-    const hasValidScore = (score: number | null | undefined): boolean => {
-        return score !== null && score !== undefined && score > 0;
+    // const hasValidScore = (score: number | null | undefined): boolean => {
+    //     return score !== null && score !== undefined && score > 0;
+    // };
+    // const hasValidScore = (score: number | null | undefined, absentFlag?: boolean): boolean => {
+    //     // If student was absent, return true (we want to show AB)
+    //     if (absentFlag === true) return true;
+
+    //     // Check if score is a valid number (including 0)
+    //     if (score === null || score === undefined) return false;
+    //     if (isNaN(score)) return false;
+
+    //     // Allow 0 as a valid score
+    //     return true;
+    // };
+
+    const hasValidScore = (
+        subject: any,
+        type: 'qa1' | 'qa2' | 'endOfTerm'
+    ): boolean => {
+
+        const score = subject[type];
+
+        const isAbsent =
+            type === 'qa1' ? subject.qa1_absent :
+                type === 'qa2' ? subject.qa2_absent :
+                    subject.endOfTerm_absent;
+
+        // Absent counts as an entry
+        if (isAbsent) return true;
+
+        // Null means no score entered
+        if (score === null || score === undefined) return false;
+
+        // Must be a number (0 allowed)
+        return typeof score === 'number' && !isNaN(score);
     };
 
-    const hasAssessmentScores = (type: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
-        if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
-            return false;
-        }
+
+    // const hasAssessmentScores = (type: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
+    //     if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
+    //         return false;
+    //     }
+    //     return studentData.subjects.some(subject => {
+    //         const score = subject[type];
+    //         // Check if score was ACTUALLY entered (not null/undefined)
+    //         // This allows 0 and AB to pass through
+    //         return score !== null && score !== undefined;
+    //     });
+    // };
+
+    const hasAssessmentScores = (assessmentType: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
+        if (!studentData || !studentData.subjects || studentData.subjects.length === 0) return false;
+
         return studentData.subjects.some(subject => {
-            const score = subject[type];
-            return score !== null && score !== undefined && score > 0;
+            const score = subject[assessmentType];
+            const absentFlag = assessmentType === 'qa1' ? subject.qa1_absent
+                : assessmentType === 'qa2' ? subject.qa2_absent
+                    : subject.endOfTerm_absent;
+
+            if (absentFlag) return true;
+
+            if (typeof score === 'string' && score === 'AB') return true;
+
+            return typeof score === 'number';
         });
     };
 
@@ -220,7 +320,8 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
             // 1. Data Calculations
             const avgScore = calculateAssessmentAverage();
             const numericAvg = avgScore === 'N/A' ? null : parseFloat(avgScore);
-            const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
+            // const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
+            const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s, assessmentType))
             const passMark = studentData.gradeConfiguration?.pass_mark || 50;
 
             // RESOLVED RANK: Fetching from assessmentStats based on the active tab
@@ -291,20 +392,57 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
             doc.setFont('helvetica', 'normal');
 
             // Filter subjects with valid scores
+            // const subjectsWithValidScores = studentData.subjects.filter(subject =>
+            //     hasValidScore(subject[assessmentType])
+            // );
+
+            // const subjectsWithValidScores = studentData.subjects.filter(s => hasValidScore(s, assessmentType));
             const subjectsWithValidScores = studentData.subjects.filter(subject =>
-                hasValidScore(subject[assessmentType])
+                hasValidScore(subject, assessmentType)
             );
 
             if (subjectsWithValidScores.length > 0) {
+                // const tableBody = subjectsWithValidScores.map(subject => {
+                //     const score = subject[assessmentType]!;
+                //     const grade = calculateGrade(score, passMark);
+                //     const remark = grade === 'F' ? 'Failed' : 'Passed';
+
+                //     return [
+                //         subject.name,
+                //         '100', // Each subject has total marks of 100
+                //         score.toFixed(1),
+                //         grade,
+                //         remark
+                //     ];
+                // });
                 const tableBody = subjectsWithValidScores.map(subject => {
-                    const score = subject[assessmentType]!;
-                    const grade = calculateGrade(score, passMark);
+                    const score = subject[assessmentType];
+
+                    const isAbsent =
+                        assessmentType === 'qa1' ? subject.qa1_absent :
+                            assessmentType === 'qa2' ? subject.qa2_absent :
+                                subject.endOfTerm_absent;
+
+                    // If Absent → show AB clearly
+                    if (isAbsent) {
+                        return [
+                            subject.name,
+                            '100',
+                            'AB',
+                            'AB',
+                            'Absent'
+                        ];
+                    }
+
+                    // Otherwise must be numeric
+                    const numericScore = score as number;
+                    const grade = calculateGrade(numericScore, passMark);
                     const remark = grade === 'F' ? 'Failed' : 'Passed';
 
                     return [
                         subject.name,
-                        '100', // Each subject has total marks of 100
-                        score.toFixed(1),
+                        '100',
+                        numericScore.toFixed(1),
                         grade,
                         remark
                     ];
@@ -564,7 +702,8 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
     }
 
     const avgScore = calculateAssessmentAverage();
-    const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
+    // const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
+    const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s, assessmentType));
     const passMark = studentData.gradeConfiguration?.pass_mark || 50;
     const totalScored = calculateTotalScored();
 
@@ -618,7 +757,7 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
 
             {/* Existing assessment results display */}
             <div className="grid gap-4">
-                {studentData.subjects.map((subject, index) => {
+                {/* {studentData.subjects.map((subject, index) => {
                     const score = subject[assessmentType];
                     const hasScore = hasValidScore(score);
 
@@ -671,6 +810,79 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
                                     </div>
                                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getGradeColor(gradeForThisTab)}`}>
                                         {gradeForThisTab}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })} */}
+
+                {studentData.subjects.map((subject, index) => {
+                    const score = subject[assessmentType];
+                    const isAbsent = assessmentType === 'qa1' ? subject.qa1_absent :
+                        assessmentType === 'qa2' ? subject.qa2_absent :
+                            subject.endOfTerm_absent;
+
+                    // const hasScore = hasValidScore(score, isAbsent);
+                    const hasScore = hasValidScore(subject, assessmentType);
+
+                    const gradeForThisTab = (() => {
+                        if (isAbsent) return 'AB';
+                        if (!hasScore) return 'N/A';
+                        if (score >= 80) return 'A';
+                        if (score >= 70) return 'B';
+                        if (score >= 60) return 'C';
+                        if (score >= passMark) return 'D';
+                        return 'F';
+                    })();
+
+                    return (
+                        <div key={index} className="bg-white rounded-xl p-4 border border-slate-200 hover:border-indigo-200 transition-colors">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                                <div className="flex-1">
+                                    <h5 className="font-semibold text-slate-800">{subject.name}</h5>
+                                    {hasScore ? (
+                                        <>
+                                            <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                {!isAbsent && (
+                                                    <div
+                                                        className={`h-full ${score >= 80 ? 'bg-emerald-500' :
+                                                            score >= 60 ? 'bg-blue-500' :
+                                                                score >= passMark ? 'bg-amber-500' :
+                                                                    'bg-red-500'
+                                                            } transition-all duration-500`}
+                                                        style={{ width: `${Math.min(score, 100)}%` }}
+                                                    ></div>
+                                                )}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="mt-2 text-sm text-amber-600 italic">
+                                            {isAbsent ? 'Student was absent' : `No test conducted for ${getAssessmentTitle(assessmentType)}`}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right">
+                                        {!isAbsent && hasScore ? (
+                                            <>
+                                                <p className="text-2xl font-bold text-slate-800">{score}%</p>
+                                                <p className="text-xs text-slate-500">Score</p>
+                                            </>
+                                        ) : isAbsent ? (
+                                            <>
+                                                <p className="text-2xl font-bold text-slate-800">AB</p>
+                                                <p className="text-xs text-slate-500">Absent</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <p className="text-2xl font-bold text-slate-400">N/A</p>
+                                                <p className="text-xs text-slate-400">No Score</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${isAbsent ? 'text-slate-600 bg-slate-100' : getGradeColor(gradeForThisTab)}`}>
+                                        {isAbsent ? 'AB' : gradeForThisTab}
                                     </span>
                                 </div>
                             </div>
@@ -753,590 +965,3 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
 
 export default QAAssessment;
 
-// import React, { useState } from 'react';
-// import { StudentData } from '@/types';
-// import { TabType } from '@/types/app';
-// import { FileText, Download, Loader2 } from 'lucide-react';
-// import jsPDF from 'jspdf';
-// import autoTable from 'jspdf-autotable';
-
-// interface QAAssessmentProps {
-//     studentData: StudentData;
-//     activeTab: TabType;
-// }
-
-// const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) => {
-//     const [isDownloading, setIsDownloading] = useState(false);
-//     const assessmentType = activeTab as 'qa1' | 'qa2' | 'endOfTerm';
-
-//     // Helper functions for PDF generation
-//     const getAssessmentTitle = (type: 'qa1' | 'qa2' | 'endOfTerm') => {
-//         switch (type) {
-//             case 'qa1': return 'Quarterly Assessment 1';
-//             case 'qa2': return 'Quarterly Assessment 2';
-//             case 'endOfTerm': return 'End of Term Examination';
-//             default: return 'Assessment';
-//         }
-//     };
-
-//     const getGradeColor = (grade: string) => {
-//         if (grade === 'N/A') return 'text-slate-600 bg-slate-100';
-//         if (grade.includes('A')) return 'text-emerald-600 bg-emerald-50';
-//         if (grade === 'B') return 'text-blue-600 bg-blue-50';
-//         if (grade === 'C') return 'text-amber-600 bg-amber-50';
-//         return 'text-red-600 bg-red-50';
-//     };
-
-//     const calculateGrade = (score: number, passMark?: number): string => {
-//         const effectivePassMark = passMark || 50;
-//         if (score >= 80) return 'A';
-//         if (score >= 70) return 'B';
-//         if (score >= 60) return 'C';
-//         if (score >= effectivePassMark) return 'D';
-//         return 'F';
-//     };
-
-//     const calculateAverage = (subjects: StudentData['subjects'], type: 'qa1' | 'qa2' | 'endOfTerm'): string => {
-//         const validSubjects = subjects.filter(s => {
-//             const score = s[type];
-//             return score !== null && score !== undefined && score > 0;
-//         });
-
-//         if (validSubjects.length === 0) return 'N/A';
-
-//         const total = validSubjects.reduce((acc, s) => acc + s[type], 0);
-//         return (total / validSubjects.length).toFixed(1);
-//     };
-
-//     const hasValidScore = (score: number | null | undefined): boolean => {
-//         return score !== null && score !== undefined && score > 0;
-//     };
-
-//     const hasAssessmentScores = (type: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
-//         if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
-//             return false;
-//         }
-//         return studentData.subjects.some(subject => {
-//             const score = subject[type];
-//             return score !== null && score !== undefined && score > 0;
-//         });
-//     };
-
-//     // PDF Generation function for assessments
-//     const handleDownloadAssessmentPDF = () => {
-//         setIsDownloading(true);
-
-//         try {
-//             const doc = new jsPDF();
-//             const pageWidth = doc.internal.pageSize.getWidth();
-//             let y = 20;
-
-//             // Header
-//             doc.setFontSize(18);
-//             doc.setFont('helvetica', 'bold');
-//             doc.text('STUDENT ASSESSMENT REPORT', pageWidth / 2, y, { align: 'center' });
-
-//             y += 6;
-//             doc.setFontSize(14);
-//             doc.text(getAssessmentTitle(assessmentType), pageWidth / 2, y, { align: 'center' });
-
-//             y += 12;
-
-//             // Student Information
-//             doc.setFontSize(10);
-//             doc.setFont('helvetica', 'bold');
-//             doc.text('STUDENT INFORMATION', 14, y);
-//             y += 4;
-//             doc.setFont('helvetica', 'normal');
-
-//             doc.text(`Student Name: ${studentData.name || 'N/A'}`, 14, y);
-//             doc.text(`Exam Number: ${studentData.examNumber || 'N/A'}`, 14, y + 6);
-//             doc.text(`Class: ${studentData.class || 'N/A'}`, 14, y + 12);
-//             doc.text(`Academic Year: ${studentData.academicYear || 'N/A'}`, 120, y);
-//             doc.text(`Term: ${studentData.term || 'N/A'}`, 120, y + 6);
-
-//             y += 22;
-
-//             // Assessment Summary
-//             doc.setFont('helvetica', 'bold');
-//             doc.text('ASSESSMENT SUMMARY', 14, y);
-//             y += 4;
-//             doc.setFont('helvetica', 'normal');
-
-//             const avgScore = calculateAverage(studentData.subjects, assessmentType);
-//             const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
-
-//             doc.text(`Assessment Type: ${getAssessmentTitle(assessmentType)}`, 14, y);
-//             doc.text(`Average Score: ${avgScore === 'N/A' ? 'No scores available' : `${avgScore}%`}`, 14, y + 6);
-//             doc.text(`Subjects Assessed: ${subjectsWithScores.length}/${studentData.subjects.length}`, 14, y + 12);
-
-//             y += 20;
-
-//             // Results Table
-//             doc.setFont('helvetica', 'bold');
-//             doc.text('SUBJECT RESULTS', 14, y);
-//             y += 4;
-//             doc.setFont('helvetica', 'normal');
-
-//             // Filter subjects with valid scores
-//             const subjectsWithValidScores = studentData.subjects.filter(subject =>
-//                 hasValidScore(subject[assessmentType])
-//             );
-
-//             if (subjectsWithValidScores.length > 0) {
-//                 const tableBody = subjectsWithValidScores.map(subject => {
-//                     const score = subject[assessmentType]!;
-//                     const grade = calculateGrade(score, studentData.gradeConfiguration?.pass_mark || 50);
-//                     const remark = grade === 'F' ? 'Failed' : 'Passed';
-
-//                     return [
-//                         subject.name,
-//                         '100',
-//                         score.toFixed(1),
-//                         grade,
-//                         remark
-//                     ];
-//                 });
-
-//                 // Add total row
-//                 const totalMarks = subjectsWithValidScores.reduce((sum, subject) => sum + subject[assessmentType]!, 0);
-//                 const averageMarks = totalMarks / subjectsWithValidScores.length;
-//                 const overallGrade = calculateGrade(averageMarks, studentData.gradeConfiguration?.pass_mark || 50);
-//                 const overallRemark = overallGrade === 'F' ? 'Failed' : 'Passed';
-
-//                 tableBody.push([
-//                     'TOTAL / AVERAGE',
-//                     String(subjectsWithValidScores.length * 100),
-//                     averageMarks.toFixed(1),
-//                     overallGrade,
-//                     overallRemark
-//                 ]);
-
-//                 autoTable(doc, {
-//                     startY: y,
-//                     head: [['Subject', 'Total Marks', 'Marks Obtained', 'Grade', 'Remark']],
-//                     body: tableBody,
-//                     theme: 'striped',
-//                     didParseCell: (data) => {
-//                         if (data.row.index === tableBody.length - 1) {
-//                             data.cell.styles.fontStyle = 'bold';
-//                         }
-//                     },
-//                 });
-
-//                 y = (doc as any).lastAutoTable.finalY + 10;
-//             } else {
-//                 doc.text('No assessment scores available for this period.', 14, y);
-//                 y += 10;
-//             }
-
-//             // Performance Breakdown
-//             if (subjectsWithValidScores.length > 0) {
-//                 doc.setFont('helvetica', 'bold');
-//                 doc.text('PERFORMANCE BREAKDOWN', 14, y);
-//                 y += 4;
-//                 doc.setFont('helvetica', 'normal');
-
-//                 const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-
-//                 // Count grades
-//                 const aCount = subjectsWithValidScores.filter(s => calculateGrade(s[assessmentType]!, passMark) === 'A').length;
-//                 const bCount = subjectsWithValidScores.filter(s => calculateGrade(s[assessmentType]!, passMark) === 'B').length;
-//                 const cCount = subjectsWithValidScores.filter(s => calculateGrade(s[assessmentType]!, passMark) === 'C').length;
-//                 const dCount = subjectsWithValidScores.filter(s => calculateGrade(s[assessmentType]!, passMark) === 'D').length;
-//                 const fCount = subjectsWithValidScores.filter(s => calculateGrade(s[assessmentType]!, passMark) === 'F').length;
-
-//                 doc.text(`Grade A: ${aCount} subjects`, 14, y);
-//                 doc.text(`Grade B: ${bCount} subjects`, 14, y + 6);
-//                 doc.text(`Grade C: ${cCount} subjects`, 14, y + 12);
-//                 doc.text(`Grade D: ${dCount} subjects`, 14, y + 18);
-//                 doc.text(`Grade F: ${fCount} subjects`, 14, y + 24);
-
-//                 doc.text(`Pass Rate: ${((aCount + bCount + cCount + dCount) / subjectsWithValidScores.length * 100).toFixed(1)}%`, 120, y);
-//                 doc.text(`Subjects Above ${passMark}%: ${aCount + bCount + cCount + dCount}/${subjectsWithValidScores.length}`, 120, y + 6);
-
-//                 y += 32;
-//             }
-
-//             // Footer
-//             doc.setFont('helvetica', 'normal');
-//             doc.setFontSize(10);
-//             doc.text(
-//                 `Generated on: ${new Date().toLocaleDateString('en-US', {
-//                     weekday: 'long',
-//                     year: 'numeric',
-//                     month: 'long',
-//                     day: 'numeric',
-//                 })}`,
-//                 pageWidth / 2,
-//                 y,
-//                 { align: 'center' }
-//             );
-
-//             y += 6;
-
-//             doc.setFontSize(8);
-//             doc.text(
-//                 'This is an assessment report only. For complete academic performance, refer to the full report card.',
-//                 pageWidth / 2,
-//                 y,
-//                 { align: 'center' }
-//             );
-
-//             // Save PDF
-//             const studentName = studentData.name || 'Student';
-//             const assessmentTitle = getAssessmentTitle(assessmentType).replace(/\s+/g, '_');
-//             const filename = `${assessmentTitle}_${studentName.replace(/\s+/g, '_')}.pdf`;
-
-//             doc.save(filename);
-
-//         } catch (error) {
-//             console.error('Error generating assessment PDF:', error);
-//             alert('Failed to generate PDF. Please try again.');
-//         } finally {
-//             setIsDownloading(false);
-//         }
-//     };
-
-//     // Rest of your existing component code...
-//     if (!hasAssessmentScores(assessmentType)) {
-//         return (
-//             <div className="text-center py-12 bg-slate-50 rounded-xl">
-//                 <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-//                 <h4 className="text-lg font-semibold text-slate-700 mb-2">
-//                     No {assessmentType === 'qa1' ? 'Quarterly Assessment 1' :
-//                         assessmentType === 'qa2' ? 'Quarterly Assessment 2' :
-//                             'End of Term'} Scores
-//                 </h4>
-//                 <p className="text-slate-500 max-w-md mx-auto">
-//                     This student did not write the {assessmentType === 'qa1' ? 'first quarterly assessment' :
-//                         assessmentType === 'qa2' ? 'second quarterly assessment' :
-//                             'end of term examination'}.
-//                     Scores will appear here once entered by the teacher.
-//                 </p>
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <div className="space-y-6">
-//             {/* Download Button Header */}
-//             <div className="flex items-center justify-between mb-6">
-//                 <div>
-//                     <h3 className="text-xl font-bold text-slate-800">
-//                         {getAssessmentTitle(assessmentType)} Results
-//                     </h3>
-//                     <p className="text-slate-500 mt-1">
-//                         Average Score: <span className="font-semibold text-indigo-600">
-//                             {calculateAverage(studentData.subjects, assessmentType) === 'N/A' ?
-//                                 'No tests conducted' :
-//                                 `${calculateAverage(studentData.subjects, assessmentType)}%`}
-//                         </span>
-//                     </p>
-//                 </div>
-
-//                 <button
-//                     onClick={handleDownloadAssessmentPDF}
-//                     disabled={isDownloading}
-//                     className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 text-white transition-colors ${isDownloading
-//                         ? 'bg-indigo-400 cursor-wait'
-//                         : 'bg-indigo-600 hover:bg-indigo-700'
-//                         }`}
-//                 >
-//                     {isDownloading ? (
-//                         <>
-//                             <Loader2 className="w-4 h-4 animate-spin" />
-//                             <span>Generating PDF...</span>
-//                         </>
-//                     ) : (
-//                         <>
-//                             <Download className="w-4 h-4" />
-//                             <span>Download PDF</span>
-//                         </>
-//                     )}
-//                 </button>
-//             </div>
-
-//             {/* Existing assessment results display */}
-//             <div className="grid gap-4">
-//                 {studentData.subjects.map((subject, index) => {
-//                     const score = subject[assessmentType];
-//                     const hasScore = hasValidScore(score);
-
-//                     const gradeForThisTab = (() => {
-//                         if (!hasScore) return 'N/A';
-//                         const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-//                         if (score >= 80) return 'A';
-//                         if (score >= 70) return 'B';
-//                         if (score >= 60) return 'C';
-//                         if (score >= passMark) return 'D';
-//                         return 'F';
-//                     })();
-
-//                     return (
-//                         <div key={index} className="bg-white rounded-xl p-4 border border-slate-200 hover:border-indigo-200 transition-colors">
-//                             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-//                                 <div className="flex-1">
-//                                     <h5 className="font-semibold text-slate-800">{subject.name}</h5>
-//                                     {hasScore ? (
-//                                         <>
-//                                             <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
-//                                                 <div
-//                                                     className={`h-full ${score >= 80 ? 'bg-emerald-500' :
-//                                                         score >= 60 ? 'bg-blue-500' :
-//                                                             score >= (studentData.gradeConfiguration?.pass_mark || 50) ? 'bg-amber-500' :
-//                                                                 'bg-red-500'
-//                                                         } transition-all duration-500`}
-//                                                     style={{ width: `${Math.min(score, 100)}%` }}
-//                                                 ></div>
-//                                             </div>
-//                                         </>
-//                                     ) : (
-//                                         <div className="mt-2 text-sm text-amber-600 italic">
-//                                             No test conducted for {getAssessmentTitle(assessmentType)}
-//                                         </div>
-//                                     )}
-//                                 </div>
-//                                 <div className="flex items-center gap-4">
-//                                     <div className="text-right">
-//                                         {hasScore ? (
-//                                             <>
-//                                                 <p className="text-2xl font-bold text-slate-800">{score}%</p>
-//                                                 <p className="text-xs text-slate-500">Score</p>
-//                                             </>
-//                                         ) : (
-//                                             <>
-//                                                 <p className="text-2xl font-bold text-slate-400">N/A</p>
-//                                                 <p className="text-xs text-slate-400">No Score</p>
-//                                             </>
-//                                         )}
-//                                     </div>
-//                                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getGradeColor(gradeForThisTab)}`}>
-//                                         {gradeForThisTab}
-//                                     </span>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     );
-//                 })}
-//             </div>
-
-//             {/* Performance Summary Card */}
-//             {hasAssessmentScores(assessmentType) && (
-//                 <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-xl p-6 border border-indigo-100 mt-6">
-//                     <h5 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-//                         Performance Summary
-//                     </h5>
-//                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-//                         <div className="bg-white p-3 rounded-lg text-center">
-//                             <p className="text-sm text-slate-500">Average Score</p>
-//                             <p className="text-2xl font-bold text-indigo-700">
-//                                 {calculateAverage(studentData.subjects, assessmentType)}%
-//                             </p>
-//                         </div>
-//                         <div className="bg-white p-3 rounded-lg text-center">
-//                             <p className="text-sm text-slate-500">Subjects Assessed</p>
-//                             <p className="text-2xl font-bold text-emerald-700">
-//                                 {studentData.subjects.filter(s => hasValidScore(s[assessmentType])).length}
-//                                 <span className="text-sm text-slate-400">/{studentData.subjects.length}</span>
-//                             </p>
-//                         </div>
-//                         <div className="bg-white p-3 rounded-lg text-center">
-//                             <p className="text-sm text-slate-500">Pass Rate</p>
-//                             <p className="text-2xl font-bold text-blue-700">
-//                                 {(() => {
-//                                     const validSubjects = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
-//                                     if (validSubjects.length === 0) return '0%';
-//                                     const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-//                                     const passed = validSubjects.filter(s => s[assessmentType]! >= passMark).length;
-//                                     return `${((passed / validSubjects.length) * 100).toFixed(1)}%`;
-//                                 })()}
-//                             </p>
-//                         </div>
-//                         <div className="bg-white p-3 rounded-lg text-center">
-//                             <p className="text-sm text-slate-500">Status</p>
-//                             <p className={`text-xl font-bold ${parseFloat(calculateAverage(studentData.subjects, assessmentType)) >=
-//                                 (studentData.gradeConfiguration?.pass_mark || 50)
-//                                 ? 'text-emerald-700'
-//                                 : 'text-red-700'
-//                                 }`}>
-//                                 {parseFloat(calculateAverage(studentData.subjects, assessmentType)) >=
-//                                     (studentData.gradeConfiguration?.pass_mark || 50)
-//                                     ? 'PASSING'
-//                                     : 'NEEDS IMPROVEMENT'}
-//                             </p>
-//                         </div>
-//                     </div>
-//                 </div>
-//             )}
-//         </div>
-//     );
-// };
-
-// export default QAAssessment;
-
-// import React from 'react';
-// import { StudentData } from '@/types';
-// import { TabType } from '@/types/app';
-// import { FileText } from 'lucide-react';
-
-// interface QAAssessmentProps {
-//     studentData: StudentData;
-//     activeTab: TabType;
-// }
-
-// const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) => {
-//     // Ensure activeTab is only qa1, qa2, or endOfTerm (reportCard shouldn't be passed here)
-//     const assessmentType = activeTab as 'qa1' | 'qa2' | 'endOfTerm';
-
-//     const getGradeColor = (grade: string) => {
-//         if (grade === 'N/A') return 'text-slate-600 bg-slate-100';
-//         if (grade.includes('A')) return 'text-emerald-600 bg-emerald-50';
-//         if (grade === 'B') return 'text-blue-600 bg-blue-50';
-//         if (grade === 'C') return 'text-amber-600 bg-amber-50';
-//         return 'text-red-600 bg-red-50';
-//     };
-
-//     const getScoreColor = (score: number) => {
-//         if (score === null || score === undefined || score <= 0) return 'bg-slate-300';
-//         const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-//         if (score >= 80) return 'bg-emerald-500';
-//         if (score >= 60) return 'bg-blue-500';
-//         if (score >= passMark) return 'bg-amber-500';
-//         return 'bg-red-500';
-//     };
-
-//     const calculateAverage = (subjects: StudentData['subjects'], type: 'qa1' | 'qa2' | 'endOfTerm' | 'overall') => {
-//         if (subjects.length === 0) return 'N/A';
-
-//         if (type === 'overall') {
-//             const validSubjects = subjects.filter(s => {
-//                 const finalScore = s.finalScore || ((s.qa1 + s.qa2 + s.endOfTerm) / 3);
-//                 return finalScore > 0;
-//             });
-
-//             if (validSubjects.length === 0) return 'N/A';
-
-//             const total = validSubjects.reduce((acc, s) => {
-//                 const finalScore = s.finalScore || ((s.qa1 + s.qa2 + s.endOfTerm) / 3);
-//                 return acc + finalScore;
-//             }, 0);
-//             return (total / validSubjects.length).toFixed(1);
-//         }
-
-//         const validSubjects = subjects.filter(s => s[type] !== null && s[type] !== undefined && s[type] > 0);
-//         if (validSubjects.length === 0) return 'N/A';
-
-//         const total = validSubjects.reduce((acc, s) => acc + s[type], 0);
-//         return (total / validSubjects.length).toFixed(1);
-//     };
-
-//     const hasValidScore = (score: number | null | undefined): boolean => {
-//         return score !== null && score !== undefined && score > 0;
-//     };
-
-//     const hasAssessmentScores = (type: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
-//         if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
-//             return false;
-//         }
-
-//         return studentData.subjects.some(subject => {
-//             const score = subject[type];
-//             return score !== null && score !== undefined && score > 0;
-//         });
-//     };
-
-//     if (!hasAssessmentScores(assessmentType)) {
-//         return (
-//             <div className="text-center py-12 bg-slate-50 rounded-xl">
-//                 <FileText className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-//                 <h4 className="text-lg font-semibold text-slate-700 mb-2">
-//                     No {assessmentType === 'qa1' ? 'Quarterly Assessment 1' :
-//                         assessmentType === 'qa2' ? 'Quarterly Assessment 2' :
-//                             'End of Term'} Scores
-//                 </h4>
-//                 <p className="text-slate-500 max-w-md mx-auto">
-//                     This student did not write the {assessmentType === 'qa1' ? 'first quarterly assessment' :
-//                         assessmentType === 'qa2' ? 'second quarterly assessment' :
-//                             'end of term examination'}.
-//                     Scores will appear here once entered by the teacher.
-//                 </p>
-//             </div>
-//         );
-//     }
-
-//     return (
-//         <div>
-//             <div className="flex items-center justify-between mb-6">
-//                 <p className="text-slate-500">
-//                     Average Score: <span className="font-semibold text-indigo-600">
-//                         {calculateAverage(studentData.subjects, assessmentType) === 'N/A' ? 'No tests conducted' : `${calculateAverage(studentData.subjects, assessmentType)}%`}
-//                     </span>
-//                 </p>
-//             </div>
-
-//             <div className="grid gap-4">
-//                 {studentData.subjects.map((subject, index) => {
-//                     const score = subject[assessmentType];
-//                     const hasScore = hasValidScore(score);
-
-//                     const gradeForThisTab = (() => {
-//                         if (!hasScore) return 'N/A';
-//                         const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-//                         if (score >= 80) return 'A';
-//                         if (score >= 70) return 'B';
-//                         if (score >= 60) return 'C';
-//                         if (score >= passMark) return 'D';
-//                         return 'F';
-//                     })();
-
-//                     return (
-//                         <div key={index} className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
-//                             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-//                                 <div className="flex-1">
-//                                     <h5 className="font-semibold text-slate-800">{subject.name}</h5>
-//                                     {hasScore ? (
-//                                         <>
-//                                             <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
-//                                                 <div
-//                                                     className={`h-full ${getScoreColor(score)} transition-all duration-500`}
-//                                                     style={{ width: `${Math.min(score, 100)}%` }}
-//                                                 ></div>
-//                                             </div>
-//                                         </>
-//                                     ) : (
-//                                         <div className="mt-2 text-sm text-amber-600 italic">
-//                                             No test conducted for {assessmentType === 'qa1' ? 'Quarterly Assessment 1' :
-//                                                 assessmentType === 'qa2' ? 'Quarterly Assessment 2' :
-//                                                     'End of Term Examination'}
-//                                         </div>
-//                                     )}
-//                                 </div>
-//                                 <div className="flex items-center gap-4">
-//                                     <div className="text-right">
-//                                         {hasScore ? (
-//                                             <>
-//                                                 <p className="text-2xl font-bold text-slate-800">{score}%</p>
-//                                                 <p className="text-xs text-slate-500">Score</p>
-//                                             </>
-//                                         ) : (
-//                                             <>
-//                                                 <p className="text-2xl font-bold text-slate-400">N/A</p>
-//                                                 <p className="text-xs text-slate-400">No Score</p>
-//                                             </>
-//                                         )}
-//                                     </div>
-//                                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getGradeColor(gradeForThisTab)}`}>
-//                                         {gradeForThisTab}
-//                                     </span>
-//                                 </div>
-//                             </div>
-//                         </div>
-//                     );
-//                 })}
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default QAAssessment;

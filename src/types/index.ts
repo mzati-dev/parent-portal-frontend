@@ -49,6 +49,10 @@ export interface Subject {
     endOfTerm: number;
     finalScore?: number;
     grade: string;
+    // ADD THESE THREE LINES:
+    qa1_absent?: boolean;
+    qa2_absent?: boolean;
+    endOfTerm_absent?: boolean;
 }
 
 export interface Class {
