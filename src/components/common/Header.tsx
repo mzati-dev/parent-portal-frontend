@@ -37,10 +37,7 @@ const Header: React.FC<HeaderProps> = ({ onShowAdmin }) => {
                                 </h1>
                             </div>
 
-                            {/* 2. Pilot Message */}
-                            <p className="mt-0.5 text-[10px] sm:text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-lg w-fit leading-snug">
-                                (Piloted at Progress Private Primary School)
-                            </p>
+
 
                             {/* 3. Tagline (NO TRUNCATION - SHOWS FULL TEXT) */}
                             <p className="block text-[10px] sm:text-sm text-gray-500 font-light mt-0.5 whitespace-nowrap">
