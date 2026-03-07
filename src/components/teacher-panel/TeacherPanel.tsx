@@ -492,13 +492,13 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                 });
             }
 
-            // Trigger automatic rank recalculation for the class
-            if (selectedStudent.class?.id) {
-                await calculateAndUpdateRanks(
-                    selectedStudent.class.id,
-                    selectedStudent.term || 'Term 1, 2024/2025'
-                );
-            }
+            // // Trigger automatic rank recalculation for the class
+            // if (selectedStudent.class?.id) {
+            //     await calculateAndUpdateRanks(
+            //         selectedStudent.class.id,
+            //         selectedStudent.term || 'Term 1, 2024/2025'
+            //     );
+            // }
 
             showMessage('Results saved and ranks auto-calculated!');
 
@@ -568,8 +568,43 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
             )}
 
             {/* Tab navigation */}
+            {/* Tab navigation and rank calculation button */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                 <TeacherTabs activeTab={activeTab} onTabChange={handleTabChange} />
+
+                {/* Calculate Ranks Button - Click after entering all scores */}
+                <div className="mt-4 flex justify-center">
+                    <button
+                        onClick={async () => {
+                            if (!confirm('Calculate final ranks for all your classes? This will update rankings based on all entered scores.')) return;
+
+                            setSavingResults(true);
+                            try {
+                                // Get unique classes teacher has access to
+                                const uniqueClassIds = [...new Set(assignments.map(a => a.classId))];
+
+                                for (const classId of uniqueClassIds) {
+                                    const classItem = teacherClasses.find(c => c.id === classId);
+                                    if (classItem) {
+                                        await calculateAndUpdateRanks(
+                                            classId,
+                                            classItem.term || 'Term 1, 2024/2025'
+                                        );
+                                    }
+                                }
+                                alert('All ranks calculated successfully!');
+                                window.location.reload();
+                            } catch (error) {
+                                alert('Error calculating ranks');
+                            } finally {
+                                setSavingResults(false);
+                            }
+                        }}
+                        className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 mb-4"
+                    >
+                        🚨 CALCULATE FINAL RANKS (Click after entering all scores)
+                    </button>
+                </div>
             </div>
 
             {/* Main content area */}

@@ -633,12 +633,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             });
 
             // Auto-calculate ranks
-            if (selectedStudent.class?.id) {
-                await calculateAndUpdateRanks(
-                    selectedStudent.class.id,
-                    selectedStudent.term || 'Term 1, 2024/2025'
-                );
-            }
+            // if (selectedStudent.class?.id) {
+            //     await calculateAndUpdateRanks(
+            //         selectedStudent.class.id,
+            //         selectedStudent.term || 'Term 1, 2024/2025'
+            //     );
+            // }
 
             // === START: AUTO-SWITCH TO END OF TERM ONLY IF QA1/QA2 ENTERED ===
             // Check if QA1/QA2 scores were entered but NO End of Term
@@ -877,16 +877,32 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                 <AdminTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-                {/* 👇 ADD THE BUTTON RIGHT HERE 👇 */}
-                {/* <div className="mt-4 flex justify-center">
+                <div className="mt-4 flex justify-center">
                     <button
-                        onClick={fixAllRanksOnce}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                        onClick={async () => {
+                            if (!confirm('Fix all ranks? This will recalculate for all classes.')) return;
+
+                            setSavingResults(true);
+                            try {
+                                for (const classItem of classes) {
+                                    await calculateAndUpdateRanks(
+                                        classItem.id,
+                                        classItem.term || 'Term 1, 2024/2025'
+                                    );
+                                }
+                                alert('All ranks fixed successfully!');
+                                window.location.reload();
+                            } catch (error) {
+                                alert('Error fixing ranks');
+                            } finally {
+                                setSavingResults(false);
+                            }
+                        }}
+                        className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700"
                     >
-                        🔄 Fix All Rankings (One-Time)
+                        🚨 FIX ALL RANKS NOW (CLICK ONCE)
                     </button>
-                </div> */}
-                {/* 👆 ADDED 👆 */}
+                </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
