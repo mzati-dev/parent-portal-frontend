@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Phone, Mail, ArrowUp, MessageCircle } from 'lucide-react';
+import { MapPin, Phone, Mail, ArrowUp, MessageCircle, Building } from 'lucide-react';
 
 const Footer: React.FC = () => {
 
@@ -82,6 +82,20 @@ const Footer: React.FC = () => {
                         <h5 className="font-semibold mb-4 text-indigo-400">Contact Info</h5>
                         <ul className="space-y-4 text-slate-400 text-sm">
                             <li className="flex items-start gap-3">
+                                <Building className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
+                                <span>Mzatinova EduSpace</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <Phone className="w-5 h-5 text-indigo-500 shrink-0" />
+                                <span>+265 (0) 999 61 33 24</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <Mail className="w-5 h-5 text-indigo-500 shrink-0" />
+                                <span>support@eduspaceportal.com</span>
+                            </li>
+                        </ul>
+                        {/* <ul className="space-y-4 text-slate-400 text-sm">
+                            <li className="flex items-start gap-3">
                                 <MapPin className="w-5 h-5 text-indigo-500 shrink-0 mt-0.5" />
                                 <span>Education</span>
                             </li>
@@ -91,16 +105,16 @@ const Footer: React.FC = () => {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail className="w-5 h-5 text-indigo-500 shrink-0" />
-                                <span>support@eduspaceportal.edu</span>
+                                <span>support@eduspacenova.edu</span>
                             </li>
-                        </ul>
+                        </ul> */}
                     </div>
                 </div>
 
                 {/* Footer Bottom */}
                 <div className="pt-8 text-center md:text-left">
                     <p className="text-slate-500 text-sm">
-                        &copy; {new Date().getFullYear()} Eduspace Portal. All rights reserved.
+                        &copy; {new Date().getFullYear()} EduSpace Portal by Mzatinova. All rights reserved.
                     </p>
                 </div>
             </div>

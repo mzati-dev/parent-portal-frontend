@@ -40,7 +40,8 @@ const Header: React.FC<HeaderProps> = ({ onShowAdmin }) => {
 
 
                             {/* 3. Tagline (NO TRUNCATION - SHOWS FULL TEXT) */}
-                            <p className="block text-[10px] sm:text-sm text-gray-500 font-light mt-0.5 whitespace-nowrap">
+                            {/* <p className="block text-[10px] sm:text-sm text-gray-500 font-light mt-0.5 whitespace-nowrap"> */}
+                            <p className="block text-[10px] sm:text-sm text-gray-500 font-light mt-0.5 sm:whitespace-nowrap max-w-[180px] sm:max-w-none">
                                 A window to your child's academic success
                             </p>
                         </div>

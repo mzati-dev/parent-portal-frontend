@@ -838,6 +838,187 @@ const ClassResultsManagement: React.FC<ClassResultsManagementProps> = ({
     };
 
     // Calculate metrics for UI Cards
+    // const metrics = useMemo(() => {
+    //     const totalStudentsInClass = students.filter(student => student.class?.id === selectedClassForResults).length;
+
+    //     if (!selectedClassForResults || totalStudentsInClass === 0) {
+    //         return {
+    //             classAverage: 0,
+    //             topPerformerName: 'N/A',
+    //             topPerformerScore: 0,
+    //             passRate: 0,
+    //             totalStudents: totalStudentsInClass,
+    //             studentsWithScoresRatio: `0/${totalStudentsInClass}`,
+    //             passedCount: 0,
+    //             failedCount: 0
+    //         };
+    //     }
+
+    //     let totalAvg = 0;
+    //     let topScore = -1;
+    //     let topPerformerName = 'N/A';
+    //     let topPerformerScore = 0;
+    //     let passedCount = 0;
+    //     let failedCount = 0;
+    //     let studentsWithScoresCount = 0;
+
+    //     classResults.forEach(student => {
+    //         let avg = 0;
+    //         if (activeAssessmentType === 'overall') {
+    //             const validSubjects = student.subjects.filter(s => s.qa1 > 0 || s.qa2 > 0 || s.endOfTerm > 0);
+    //             if (validSubjects.length > 0) {
+    //                 const total = validSubjects.reduce((sum, s) => sum + ((s.qa1 + s.qa2 + s.endOfTerm) / 3), 0);
+    //                 avg = total / validSubjects.length;
+    //             }
+    //         } else {
+    //             let total = 0; let count = 0;
+    //             student.subjects.forEach(s => {
+    //                 const sc = activeAssessmentType === 'qa1' ? s.qa1 : activeAssessmentType === 'qa2' ? s.qa2 : s.endOfTerm;
+    //                 if (sc > 0) { total += sc; count++; }
+    //             });
+    //             if (count > 0) avg = total / count;
+    //         }
+
+    //         if (avg > 0) {
+    //             totalAvg += avg;
+    //             studentsWithScoresCount++;
+    //             if (avg > topScore) {
+    //                 topScore = avg;
+    //                 topPerformerName = student.name;
+    //                 topPerformerScore = avg;
+    //             }
+    //         }
+
+    //         const grade = calculateGrade(avg, activeConfig?.pass_mark);
+    //         if (grade !== 'F') passedCount++; else failedCount++;
+    //     });
+
+    //     const classAverage = studentsWithScoresCount > 0 ? totalAvg / studentsWithScoresCount : 0;
+    //     const passRate = totalStudentsInClass > 0 ? (passedCount / totalStudentsInClass) * 100 : 0;
+
+    //     return {
+    //         classAverage,
+    //         topPerformerName,
+    //         topPerformerScore,
+    //         passRate,
+    //         totalStudents: totalStudentsInClass,
+    //         studentsWithScores: studentsWithScoresCount,
+    //         studentsWithScoresRatio: `${studentsWithScoresCount}/${totalStudentsInClass}`,
+    //         passedCount,
+    //         failedCount
+    //     };
+    // }, [classResults, activeAssessmentType, students, selectedClassForResults, activeConfig, calculateGrade]);
+
+    // const metrics = useMemo(() => {
+    //     const totalStudentsInClass = students.filter(student => student.class?.id === selectedClassForResults).length;
+
+    //     if (!selectedClassForResults || totalStudentsInClass === 0) {
+    //         return {
+    //             classAverage: 0,
+    //             topPerformerName: 'N/A',
+    //             topPerformerScore: 0,
+    //             passRate: 0,
+    //             totalStudents: totalStudentsInClass,
+    //             studentsWithScoresRatio: `0/${totalStudentsInClass}`,
+    //             passedCount: 0,
+    //             failedCount: 0
+    //         };
+    //     }
+
+    //     let totalAvg = 0;
+    //     let topScore = -1;
+    //     let topPerformerName = 'N/A';
+    //     let topPerformerScore = 0;
+    //     let passedCount = 0;
+    //     let failedCount = 0;
+    //     let studentsWithScoresCount = 0;
+
+    //     classResults.forEach(student => {
+    //         let avg = 0;
+    //         let hasValidScore = false;
+
+    //         if (activeAssessmentType === 'overall') {
+    //             const validSubjects = student.subjects.filter(s => s.qa1 > 0 || s.qa2 > 0 || s.endOfTerm > 0);
+    //             if (validSubjects.length > 0) {
+    //                 const total = validSubjects.reduce((sum, s) => sum + ((s.qa1 + s.qa2 + s.endOfTerm) / 3), 0);
+    //                 avg = total / validSubjects.length;
+    //                 hasValidScore = true;
+    //             }
+    //         } else {
+    //             let total = 0;
+    //             let count = 0;
+    //             student.subjects.forEach(s => {
+    //                 let score = 0;
+    //                 let isAbsent = false;
+
+    //                 if (activeAssessmentType === 'qa1') {
+    //                     score = s.qa1;
+    //                     isAbsent = s.qa1_absent || false;
+    //                 } else if (activeAssessmentType === 'qa2') {
+    //                     score = s.qa2;
+    //                     isAbsent = s.qa2_absent || false;
+    //                 } else { // endOfTerm
+    //                     score = s.endOfTerm;
+    //                     isAbsent = s.endOfTerm_absent || false;
+    //                 }
+
+    //                 // Include if not absent AND has valid score (including 0)
+    //                 if (!isAbsent && !isNaN(score) && score !== null && score >= 0) {
+    //                     total += score;
+    //                     count++;
+    //                     hasValidScore = true;
+    //                 }
+    //                 // If absent, count it as 0 for the average
+    //                 else if (isAbsent) {
+    //                     total += 0;
+    //                     count++;
+    //                     hasValidScore = true; // Still consider this student for pass/fail
+    //                 }
+    //             });
+    //             if (count > 0) {
+    //                 avg = total / count;
+    //             }
+    //         }
+
+    //         // Only consider students with at least one valid score or absent mark for pass/fail calculation
+    //         if (hasValidScore) {
+    //             totalAvg += avg;
+    //             studentsWithScoresCount++;
+
+    //             if (avg > topScore) {
+    //                 topScore = avg;
+    //                 topPerformerName = student.name;
+    //                 topPerformerScore = avg;
+    //             }
+
+    //             // Determine pass/fail based on average and pass mark
+    //             const grade = calculateGrade(avg, activeConfig?.pass_mark);
+    //             if (grade !== 'F') {
+    //                 passedCount++;
+    //             } else {
+    //                 failedCount++;
+    //             }
+    //         }
+    //         // Students with no scores at all should not be counted in pass/fail
+    //     });
+
+    //     const classAverage = studentsWithScoresCount > 0 ? totalAvg / studentsWithScoresCount : 0;
+    //     // Calculate pass rate based on students with scores, not total students
+    //     const passRate = studentsWithScoresCount > 0 ? (passedCount / studentsWithScoresCount) * 100 : 0;
+
+    //     return {
+    //         classAverage,
+    //         topPerformerName,
+    //         topPerformerScore,
+    //         passRate,
+    //         totalStudents: totalStudentsInClass,
+    //         studentsWithScores: studentsWithScoresCount,
+    //         studentsWithScoresRatio: `${studentsWithScoresCount}/${totalStudentsInClass}`,
+    //         passedCount,
+    //         failedCount
+    //     };
+    // }, [classResults, activeAssessmentType, students, selectedClassForResults, activeConfig, calculateGrade]);
+
     const metrics = useMemo(() => {
         const totalStudentsInClass = students.filter(student => student.class?.id === selectedClassForResults).length;
 
@@ -850,62 +1031,121 @@ const ClassResultsManagement: React.FC<ClassResultsManagementProps> = ({
                 totalStudents: totalStudentsInClass,
                 studentsWithScoresRatio: `0/${totalStudentsInClass}`,
                 passedCount: 0,
-                failedCount: 0
+                failedCount: 0,
+                topPerformers: [] // Add this for potential future use
             };
         }
 
         let totalAvg = 0;
         let topScore = -1;
-        let topPerformerName = 'N/A';
-        let topPerformerScore = 0;
+        let topPerformers: { name: string; score: number }[] = []; // Array to store all top performers
         let passedCount = 0;
         let failedCount = 0;
         let studentsWithScoresCount = 0;
 
         classResults.forEach(student => {
             let avg = 0;
+            let hasValidScore = false;
+
             if (activeAssessmentType === 'overall') {
                 const validSubjects = student.subjects.filter(s => s.qa1 > 0 || s.qa2 > 0 || s.endOfTerm > 0);
                 if (validSubjects.length > 0) {
                     const total = validSubjects.reduce((sum, s) => sum + ((s.qa1 + s.qa2 + s.endOfTerm) / 3), 0);
                     avg = total / validSubjects.length;
+                    hasValidScore = true;
                 }
             } else {
-                let total = 0; let count = 0;
+                let total = 0;
+                let count = 0;
                 student.subjects.forEach(s => {
-                    const sc = activeAssessmentType === 'qa1' ? s.qa1 : activeAssessmentType === 'qa2' ? s.qa2 : s.endOfTerm;
-                    if (sc > 0) { total += sc; count++; }
-                });
-                if (count > 0) avg = total / count;
-            }
+                    let score = 0;
+                    let isAbsent = false;
 
-            if (avg > 0) {
-                totalAvg += avg;
-                studentsWithScoresCount++;
-                if (avg > topScore) {
-                    topScore = avg;
-                    topPerformerName = student.name;
-                    topPerformerScore = avg;
+                    if (activeAssessmentType === 'qa1') {
+                        score = s.qa1;
+                        isAbsent = s.qa1_absent || false;
+                    } else if (activeAssessmentType === 'qa2') {
+                        score = s.qa2;
+                        isAbsent = s.qa2_absent || false;
+                    } else { // endOfTerm
+                        score = s.endOfTerm;
+                        isAbsent = s.endOfTerm_absent || false;
+                    }
+
+                    // Include if not absent AND has valid score (including 0)
+                    if (!isAbsent && !isNaN(score) && score !== null && score >= 0) {
+                        total += score;
+                        count++;
+                        hasValidScore = true;
+                    }
+                    // If absent, count it as 0 for the average
+                    else if (isAbsent) {
+                        total += 0;
+                        count++;
+                        hasValidScore = true; // Still consider this student for pass/fail
+                    }
+                });
+                if (count > 0) {
+                    avg = total / count;
                 }
             }
 
-            const grade = calculateGrade(avg, activeConfig?.pass_mark);
-            if (grade !== 'F') passedCount++; else failedCount++;
+            // Only consider students with at least one valid score or absent mark for pass/fail calculation
+            if (hasValidScore) {
+                totalAvg += avg;
+                studentsWithScoresCount++;
+
+                // Track top performers
+                if (avg > topScore) {
+                    topScore = avg;
+                    topPerformers = [{ name: student.name, score: avg }];
+                } else if (avg === topScore && topScore !== -1) {
+                    topPerformers.push({ name: student.name, score: avg });
+                }
+
+                // Determine pass/fail based on average and pass mark
+                const grade = calculateGrade(avg, activeConfig?.pass_mark);
+                if (grade !== 'F') {
+                    passedCount++;
+                } else {
+                    failedCount++;
+                }
+            }
+            // Students with no scores at all should not be counted in pass/fail
         });
 
         const classAverage = studentsWithScoresCount > 0 ? totalAvg / studentsWithScoresCount : 0;
-        const passRate = totalStudentsInClass > 0 ? (passedCount / totalStudentsInClass) * 100 : 0;
+        // Calculate pass rate based on students with scores, not total students
+        const passRate = studentsWithScoresCount > 0 ? (passedCount / studentsWithScoresCount) * 100 : 0;
+
+        // Format top performer names for display
+        let topPerformerDisplay = 'N/A';
+        if (topPerformers.length > 0) {
+            if (topPerformers.length === 1) {
+                topPerformerDisplay = topPerformers[0].name;
+            } else {
+                // If multiple top performers, show first few names with "& X more"
+                const maxNamesToShow = 2;
+                const names = topPerformers.map(p => p.name);
+                if (names.length <= maxNamesToShow) {
+                    topPerformerDisplay = names.join(' & ');
+                } else {
+                    topPerformerDisplay = `${names.slice(0, maxNamesToShow).join(', ')} & ${names.length - maxNamesToShow} more`;
+                }
+            }
+        }
 
         return {
             classAverage,
-            topPerformerName,
-            topPerformerScore,
+            topPerformerName: topPerformerDisplay,
+            topPerformerScore: topScore > -1 ? topScore : 0,
             passRate,
             totalStudents: totalStudentsInClass,
             studentsWithScores: studentsWithScoresCount,
             studentsWithScoresRatio: `${studentsWithScoresCount}/${totalStudentsInClass}`,
             passedCount,
-            failedCount
+            failedCount,
+            topPerformers // Include the full array for potential future use
         };
     }, [classResults, activeAssessmentType, students, selectedClassForResults, activeConfig, calculateGrade]);
 
