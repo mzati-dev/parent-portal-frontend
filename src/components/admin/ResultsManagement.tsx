@@ -3,6 +3,7 @@ import { ArrowLeft, Save, X } from 'lucide-react';
 import { SubjectRecord } from '@/services/studentService';
 import { GradeConfiguration } from '@/services/gradeConfigService';
 import { Student, Assessment, ReportCardData } from '@/types/admin';
+import { calculateAndUpdateRanks } from '@/services/studentService';
 
 interface ResultsManagementProps {
     students: Student[];
@@ -23,6 +24,11 @@ interface ResultsManagementProps {
     calculateFinalScore: (qa1: number, qa2: number, endOfTerm: number, config: GradeConfiguration) => number;
     isTeacherView?: boolean;
     isClassTeacher?: boolean; // ADDED
+    // ADD THESE
+    setShowConfirmModal: (show: boolean) => void;
+    setSuccessMessage: (message: string) => void;
+    setShowSuccessModal: (show: boolean) => void;
+    setErrorMessage: (message: string) => void;
 }
 
 const ResultsManagement: React.FC<ResultsManagementProps> = ({
@@ -44,6 +50,11 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
     calculateFinalScore,
     isTeacherView = false,
     isClassTeacher = false, // ADDED
+    // ADD THESE LINES
+    setShowConfirmModal,
+    setSuccessMessage,
+    setShowSuccessModal,
+    setErrorMessage,
 }) => {
     const [studentAssessmentsCount, setStudentAssessmentsCount] = useState<{ [key: string]: { qa1: number; qa2: number; endTerm: number } }>({});
 
@@ -58,7 +69,7 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
         days_late: false,
         // teacher_remarks: false
     });
-
+    const [calculatingClass, setCalculatingClass] = useState<string | null>(null);
     // const predefinedRemarks = [
     //     "Outstanding performance. Excellent understanding of concepts.",
     //     "Very good performance. Consistent effort and strong results.",
@@ -193,13 +204,75 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
 
                             return (
                                 <div key={cls.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-                                    <div className="flex items-center justify-between mb-4">
+                                    {/* <div className="flex items-center justify-between mb-4">
                                         <h3 className="text-lg font-semibold text-slate-800">
                                             {cls.name} - {cls.term} ({cls.academic_year})
                                         </h3>
                                         <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full">
                                             {classStudents.length} students
                                         </span>
+                                    </div> */}
+
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-lg font-semibold text-slate-800">
+                                            {cls.name} - {cls.term} ({cls.academic_year})
+                                        </h3>
+                                        <div className="flex items-center gap-3">
+                                            <span className="px-3 py-1 bg-indigo-100 text-indigo-700 text-sm rounded-full">
+                                                {classStudents.length} students
+                                            </span>
+                                            <button
+                                                onClick={() => {
+                                                    setCalculatingClass(cls.id);
+                                                    localStorage.setItem('selectedClassForRank', JSON.stringify({
+                                                        id: cls.id,
+                                                        name: cls.name,
+                                                        term: cls.term
+                                                    }));
+                                                    setShowConfirmModal(true);
+                                                }}
+                                                disabled={calculatingClass === cls.id}
+                                                className={`px-4 py-2 font-semibold text-sm rounded-lg shadow-md transition-all duration-200 flex items-center gap-2 ${calculatingClass === cls.id
+                                                        ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                        : 'bg-red-600 hover:bg-red-700 text-white hover:shadow-lg active:bg-red-800'
+                                                    }`}
+                                            >
+                                                {calculatingClass === cls.id ? (
+                                                    <>
+                                                        <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        <span>Calculating...</span>
+                                                    </>
+                                                ) : (
+                                                    <>📊 Calculate Class Ranks</>
+                                                )}
+                                            </button>
+                                            {/* <button
+                                                onClick={() => {
+                                                    setCalculatingClass(cls.id);
+                                                    localStorage.setItem('selectedClassForRank', JSON.stringify({
+                                                        id: cls.id,
+                                                        name: cls.name,
+                                                        term: cls.term
+                                                    }));
+                                                    setShowConfirmModal(true);
+                                                    // setCalculatingClass(null);
+                                                }}
+                                                disabled={calculatingClass === cls.id}
+                                                className={`px-3 py-1 text-white font-medium text-xs rounded-lg shadow transition-colors duration-200 flex items-center gap-1 ${calculatingClass === cls.id
+                                                    ? 'bg-gray-400 cursor-not-allowed'
+                                                    : 'bg-red-600 hover:bg-red-700'
+                                                    }`}
+                                            >
+                                                {calculatingClass === cls.id ? (
+                                                    <>⏳ Calculating...</>
+                                                ) : (
+                                                    <>Calculate Ranks (Click after entering all scores)</>
+                                                )}
+                                            </button> */}
+                                        </div>
                                     </div>
 
                                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">

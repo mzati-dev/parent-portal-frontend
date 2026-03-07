@@ -25,6 +25,8 @@ import {
     fetchTeacherSubjects,
     isClassTeacher
 } from '@/services/teacherService';
+import CustomConfirmModal from '../common/CustomConfirmModal';
+import CustomAlertModal from '../common/CustomAlertModal';
 
 interface TeacherPanelProps {
     onBack: () => void;
@@ -36,6 +38,10 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     // Teacher assignment state
     const [assignments, setAssignments] = useState<any[]>([]);           // Which subjects teacher teaches in which classes
@@ -568,44 +574,90 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
             )}
 
             {/* Tab navigation */}
-            {/* Tab navigation and rank calculation button */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                 <TeacherTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-                {/* Calculate Ranks Button - Click after entering all scores */}
-                <div className="mt-4 flex justify-center">
+                {/* Calculate Ranks Button - Smaller and inline */}
+                {/* <div className="mt-2 flex justify-end">
                     <button
-                        onClick={async () => {
-                            if (!confirm('Calculate final ranks for all your classes? This will update rankings based on all entered scores.')) return;
-
-                            setSavingResults(true);
-                            try {
-                                // Get unique classes teacher has access to
-                                const uniqueClassIds = [...new Set(assignments.map(a => a.classId))];
-
-                                for (const classId of uniqueClassIds) {
-                                    const classItem = teacherClasses.find(c => c.id === classId);
-                                    if (classItem) {
-                                        await calculateAndUpdateRanks(
-                                            classId,
-                                            classItem.term || 'Term 1, 2024/2025'
-                                        );
-                                    }
-                                }
-                                alert('All ranks calculated successfully!');
-                                window.location.reload();
-                            } catch (error) {
-                                alert('Error calculating ranks');
-                            } finally {
-                                setSavingResults(false);
-                            }
-                        }}
-                        className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 mb-4"
+                        onClick={() => setShowConfirmModal(true)}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium text-sm rounded-lg shadow transition-colors duration-200 flex items-center gap-2"
+                        disabled={savingResults}
                     >
-                        🚨 CALCULATE FINAL RANKS (Click after entering all scores)
+                        {savingResults ? (
+                            <>⏳ Calculating...</>
+                        ) : (
+                            <>🔴 Calculate Final Ranks (Click after entering all scores)</>
+                        )}
                     </button>
-                </div>
+                </div> */}
             </div>
+
+            {/* Custom Confirm Modal */}
+            <CustomConfirmModal
+                isOpen={showConfirmModal}
+                title="Calculate Final Ranks"
+                message="This will recalculate rankings for all your classes based on all entered scores. Are you sure you want to continue?"
+                onConfirm={async () => {
+                    setShowConfirmModal(false);
+                    setSavingResults(true);
+                    try {
+                        // Get the class info from localStorage (set by the button in ResultsManagement)
+                        const classData = JSON.parse(localStorage.getItem('selectedClassForRank') || '{}');
+
+                        if (classData.id) {
+                            await calculateAndUpdateRanks(
+                                classData.id,
+                                classData.term || 'Term 1, 2024/2025'
+                            );
+
+                            setSuccessMessage(`Ranks calculated for ${classData.name} successfully!`);
+                            localStorage.removeItem('selectedClassForRank');
+                        } else {
+                            // Fallback to all classes if no specific class selected
+                            const uniqueClassIds = [...new Set(assignments.map(a => a.classId))];
+                            for (const classId of uniqueClassIds) {
+                                const classItem = teacherClasses.find(c => c.id === classId);
+                                if (classItem) {
+                                    await calculateAndUpdateRanks(
+                                        classId,
+                                        classItem.term || 'Term 1, 2024/2025'
+                                    );
+                                }
+                            }
+                            setSuccessMessage('All ranks calculated successfully!');
+                        }
+
+                        setShowSuccessModal(true);
+
+                        if (activeTab === 'classResults' && selectedClassForResults) {
+                            await loadClassResults(selectedClassForResults);
+                        } else {
+                            await loadData();
+                        }
+
+                    } catch (error) {
+                        setErrorMessage('Error calculating ranks');
+                        setShowSuccessModal(true);
+                    } finally {
+                        setSavingResults(false);
+                    }
+                }}
+                onCancel={() => setShowConfirmModal(false)}
+            />
+
+            {/* Success/Error Modal - Add this after the confirm modal */}
+            <CustomAlertModal
+                isOpen={showSuccessModal}
+                title={errorMessage ? 'Error' : 'Success'}
+                message={errorMessage || successMessage}
+                type={errorMessage ? 'error' : 'success'}
+                onClose={() => {
+                    setShowSuccessModal(false);
+                    setErrorMessage('');
+                    setSuccessMessage('');
+                }}
+            />
 
             {/* Main content area */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -649,6 +701,11 @@ const TeacherPanel: React.FC<TeacherPanelProps> = ({ onBack }) => {
                         calculateFinalScore={calculateFinalScore}
                         isTeacherView={true}
                         isClassTeacher={isUserClassTeacher}
+                        // ADD THESE LINES
+                        setShowConfirmModal={setShowConfirmModal}
+                        setSuccessMessage={setSuccessMessage}
+                        setShowSuccessModal={setShowSuccessModal}
+                        setErrorMessage={setErrorMessage}
                     />
                 )}
             </div>

@@ -24,6 +24,8 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 import { Student, Assessment, ClassResultStudent } from './types/admin';
 import TeachersManagement from './components/admin/TeachersManagement';
 import { createTeacher, deleteTeacher, fetchAllTeachers } from './services/teacherService';
+import CustomConfirmModal from './components/common/CustomConfirmModal';
+import CustomAlertModal from './components/common/CustomAlertModal';
 
 interface AdminPanelProps {
     onBack: () => void;
@@ -36,6 +38,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
 
     // Class management state
     const [classes, setClasses] = useState<any[]>([]);
@@ -877,33 +883,53 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
                 <AdminTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
-                <div className="mt-4 flex justify-center">
-                    <button
-                        onClick={async () => {
-                            if (!confirm('Fix all ranks? This will recalculate for all classes.')) return;
+                {/* Calculate Ranks Button */}
 
-                            setSavingResults(true);
-                            try {
-                                for (const classItem of classes) {
-                                    await calculateAndUpdateRanks(
-                                        classItem.id,
-                                        classItem.term || 'Term 1, 2024/2025'
-                                    );
-                                }
-                                alert('All ranks fixed successfully!');
-                                window.location.reload();
-                            } catch (error) {
-                                alert('Error fixing ranks');
-                            } finally {
-                                setSavingResults(false);
-                            }
-                        }}
-                        className="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700"
-                    >
-                        🚨 FIX ALL RANKS NOW (CLICK ONCE)
-                    </button>
-                </div>
             </div>
+
+            {/* Custom Confirm Modal */}
+            <CustomConfirmModal
+                isOpen={showConfirmModal}
+                title="Calculate Final Ranks"
+                message="This will recalculate rankings for all classes based on all entered scores. Are you sure you want to continue?"
+                onConfirm={async () => {
+                    setShowConfirmModal(false);
+                    setSavingResults(true);
+                    try {
+                        const classData = JSON.parse(localStorage.getItem('selectedClassForRank') || '{}');
+
+                        if (classData.id) {
+                            await calculateAndUpdateRanks(classData.id, classData.term);
+                            setSuccessMessage(`Ranks calculated for ${classData.name} successfully!`);
+                            localStorage.removeItem('selectedClassForRank');
+                        } else {
+                            setErrorMessage('No class selected');
+                        }
+
+                        setShowSuccessModal(true);
+                        await loadData();
+                    } catch (error) {
+                        setErrorMessage('Error calculating ranks');
+                        setShowSuccessModal(true);
+                    } finally {
+                        setSavingResults(false);
+                    }
+                }}
+                onCancel={() => setShowConfirmModal(false)}
+            />
+
+            {/* Success/Error Modal */}
+            <CustomAlertModal
+                isOpen={showSuccessModal}
+                title={errorMessage ? 'Error' : 'Success'}
+                message={errorMessage || successMessage}
+                type={errorMessage ? 'error' : 'success'}
+                onClose={() => {
+                    setShowSuccessModal(false);
+                    setErrorMessage('');
+                    setSuccessMessage('');
+                }}
+            />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                 {loading ? (
@@ -1007,7 +1033,10 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                 loadClassResults={loadClassResults}
                                 calculateGrade={calculateGrade}
                             />
+
                         ) : (
+
+
                             <ResultsManagement
                                 students={students}
                                 classes={classes}
@@ -1025,7 +1054,13 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                 updateAssessmentScore={updateAssessmentScore}
                                 calculateGrade={calculateGrade}
                                 calculateFinalScore={calculateFinalScore}
+                                // ADD THESE THREE PROPS
+                                setShowConfirmModal={setShowConfirmModal}
+                                setSuccessMessage={setSuccessMessage}
+                                setShowSuccessModal={setShowSuccessModal}
+                                setErrorMessage={setErrorMessage}
                             />
+
                         )}
             </div>
         </div>
