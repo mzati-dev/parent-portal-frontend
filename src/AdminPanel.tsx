@@ -6,7 +6,12 @@ import {
     fetchAllStudents, fetchAllSubjects, createStudent, updateStudent, deleteStudent,
     upsertAssessment, upsertReportCard, fetchStudentAssessments, fetchStudentReportCard,
     calculateGrade, SubjectRecord, createSubject, deleteSubject,
-    fetchAllClasses, createClass, deleteClass, calculateAndUpdateRanks, fetchClassResults
+    fetchAllClasses, createClass, deleteClass, calculateAndUpdateRanks, fetchClassResults,
+    publishAssessment,
+    archiveResults,
+    fetchArchivedResults,
+    lockResults,
+    fetchLockedAssessments
 } from '@/services/studentService';
 import {
     getActiveGradeConfig, getAllGradeConfigs, createGradeConfig,
@@ -26,6 +31,11 @@ import TeachersManagement from './components/admin/TeachersManagement';
 import { createTeacher, deleteTeacher, fetchAllTeachers } from './services/teacherService';
 import CustomConfirmModal from './components/common/CustomConfirmModal';
 import CustomAlertModal from './components/common/CustomAlertModal';
+import ArchivedResultsView from './components/admin/modals/ArchivedResultsView';
+import ArchiveModal from './components/admin/modals/ArchiveModal';
+import PublishModal from './components/admin/modals/PublishModal';
+import LockedAssessmentsModal from './components/admin/modals/LockedAssessmentsModal';
+import LockModal from './components/admin/modals/LockModal';
 
 interface AdminPanelProps {
     onBack: () => void;
@@ -42,6 +52,17 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+
+    // Add with other state declarations
+    const [selectedClassForPublish, setSelectedClassForPublish] = useState<string>('');
+    const [selectedTermForPublish, setSelectedTermForPublish] = useState<string>('');
+    const [showPublishModal, setShowPublishModal] = useState(false);
+    const [showArchiveModal, setShowArchiveModal] = useState(false);
+    const [archivedResults, setArchivedResults] = useState<any[]>([]);
+    const [showLockedModal, setShowLockedModal] = useState(false);
+    const [lockedAssessments, setLockedAssessments] = useState<any[]>([]);
+    const [showLockModal, setShowLockModal] = useState(false);
+    const [showArchivedModal, setShowArchivedModal] = useState(false);
 
     // Class management state
     const [classes, setClasses] = useState<any[]>([]);
@@ -858,6 +879,59 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         setSelectedStudent(null);
     };
 
+
+
+    // Then update your handlers:
+
+    const handlePublishAssessment = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm', publish: boolean) => {
+        try {
+            await publishAssessment(classId, term, assessmentType, publish);
+            showMessage(`Assessment ${publish ? 'published' : 'unpublished'} successfully!`);
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to update publish status', true);
+        }
+    };
+
+    const handleArchiveResults = async (classId: string, term: string, academicYear: string) => {
+        try {
+            await archiveResults(classId, term, academicYear);
+            showMessage('Results archived successfully!');
+            setShowArchiveModal(false);
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to archive results', true);
+        }
+    };
+
+    // Update your loadArchivedResults function:
+    const loadArchivedResults = async (classId: string, term: string, academicYear: string) => {
+        try {
+            const data = await fetchArchivedResults(classId, term, academicYear);
+            setArchivedResults(data ? [data] : []);
+            setShowArchivedModal(true);  // ✅ Open modal AFTER data loads
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to load archived results', true);
+        }
+    };
+    const handleLockResults = async (classId: string, term: string, lock: boolean) => {
+        try {
+            await lockResults(classId, term, lock);
+            showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to lock/unlock results', true);
+        }
+    };
+
+    const loadLockedAssessments = async (classId: string, term: string) => {
+        try {
+            // You'll need to add this function to studentService
+            const data = await fetchLockedAssessments(classId, term);
+            setLockedAssessments(data);
+            setShowLockedModal(true);
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to load locked assessments', true);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-100">
             <AdminHeader onBack={onBack} />
@@ -1019,20 +1093,84 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                 loadData={loadData}
                             />
                         ) : activeTab === 'classResults' ? (
-                            <ClassResultsManagement
-                                classes={classes}
-                                subjects={subjects}
-                                classResults={classResults}
-                                students={students}
-                                selectedClassForResults={selectedClassForResults}
-                                activeAssessmentType={activeAssessmentType}
-                                resultsLoading={resultsLoading}
-                                activeConfig={activeConfig}
-                                setSelectedClassForResults={setSelectedClassForResults}
-                                setActiveAssessmentType={setActiveAssessmentType}
-                                loadClassResults={loadClassResults}
-                                calculateGrade={calculateGrade}
-                            />
+                            <>
+                                {/* Add buttons above ClassResultsManagement */}
+                                <div className="flex gap-2 mb-4">
+                                    <button
+                                        onClick={() => {
+                                            const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                                            if (selectedClass) {
+                                                setShowLockModal(true);  // ✅ Opens modal
+                                            } else {
+                                                showMessage('Please select a class first', true);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>🔒</span> Lock Results
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                                            if (selectedClass) {
+                                                loadLockedAssessments(selectedClassForResults, selectedClass.term);
+                                            } else {
+                                                showMessage('Please select a class first', true);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>🔍</span> View Locked
+                                    </button>
+
+
+                                    <button
+                                        onClick={() => setShowPublishModal(true)}
+                                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>📢</span> Publish Results
+                                    </button>
+                                    <button
+                                        onClick={() => setShowArchiveModal(true)}
+                                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>📦</span> Archive Term
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                                            if (selectedClass) {
+                                                loadArchivedResults(
+                                                    selectedClassForResults,
+                                                    selectedClass.term,
+                                                    selectedClass.academic_year
+                                                );
+                                            } else {
+                                                showMessage('Please select a class first', true);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>📚</span> View Archives
+                                    </button>
+
+                                </div>
+                                <ClassResultsManagement
+                                    classes={classes}
+                                    subjects={subjects}
+                                    classResults={classResults}
+                                    students={students}
+                                    selectedClassForResults={selectedClassForResults}
+                                    activeAssessmentType={activeAssessmentType}
+                                    resultsLoading={resultsLoading}
+                                    activeConfig={activeConfig}
+                                    setSelectedClassForResults={setSelectedClassForResults}
+                                    setActiveAssessmentType={setActiveAssessmentType}
+                                    loadClassResults={loadClassResults}
+                                    calculateGrade={calculateGrade}
+                                />
+                            </>
 
                         ) : (
 
@@ -1063,6 +1201,71 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
                         )}
             </div>
+            {/* Publish Modal */}
+            <PublishModal
+                isOpen={showPublishModal}
+                onClose={() => setShowPublishModal(false)}
+                onPublish={async (assessmentType, publish) => {
+                    if (selectedClassForResults) {
+                        const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                        await handlePublishAssessment(
+                            selectedClassForResults,
+                            selectedClass?.term || 'Term 1',
+                            assessmentType,
+                            publish
+                        );
+                    }
+                }}
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
+            />
+
+            {/* Archive Modal */}
+            <ArchiveModal
+                isOpen={showArchiveModal}
+                onClose={() => setShowArchiveModal(false)}
+                onArchive={async (term, academicYear) => {
+                    if (selectedClassForResults) {
+                        await handleArchiveResults(selectedClassForResults, term, academicYear);
+                    }
+                }}
+                defaultTerm={classes.find(c => c.id === selectedClassForResults)?.term}
+                defaultAcademicYear={classes.find(c => c.id === selectedClassForResults)?.academic_year}
+            />
+
+            {/* Archived Results View */}
+           // Update the modal at the bottom:
+            <ArchivedResultsView
+                isOpen={showArchivedModal}  // ✅ Use separate state
+                onClose={() => {
+                    setShowArchivedModal(false);
+                    setArchivedResults([]);
+                }}
+                archivedResults={archivedResults}
+            />
+            <LockedAssessmentsModal
+                isOpen={showLockedModal}
+                onClose={() => setShowLockedModal(false)}
+                assessments={lockedAssessments}
+                onUnlock={async (assessmentId, assessmentType) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        await handleLockResults(selectedClassForResults, selectedClass.term, false);
+                        loadLockedAssessments(selectedClassForResults, selectedClass.term);
+                    }
+                }}
+            />
+
+            <LockModal
+                isOpen={showLockModal}
+                onClose={() => setShowLockModal(false)}
+                onLock={async (assessmentType, lock) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        await handleLockResults(selectedClassForResults, selectedClass.term, lock);
+                    }
+                }}
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
+            />
         </div>
     );
 };
