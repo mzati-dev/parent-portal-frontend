@@ -11,7 +11,11 @@ import {
     archiveResults,
     fetchArchivedResults,
     lockResults,
-    fetchLockedAssessments
+    fetchLockedAssessments,
+    archiveStudentReports,
+    sendReportEmail,
+    sendReportWhatsApp,
+    fetchStudentReportArchives
 } from '@/services/studentService';
 import {
     getActiveGradeConfig, getAllGradeConfigs, createGradeConfig,
@@ -36,6 +40,8 @@ import ArchiveModal from './components/admin/modals/ArchiveModal';
 import PublishModal from './components/admin/modals/PublishModal';
 import LockedAssessmentsModal from './components/admin/modals/LockedAssessmentsModal';
 import LockModal from './components/admin/modals/LockModal';
+import StudentReportArchiveModal from './components/admin/modals/StudentReportArchiveModal';
+import ArchiveStudentReportsModal from './components/admin/modals/ArchiveStudentReportsModal';
 
 interface AdminPanelProps {
     onBack: () => void;
@@ -63,6 +69,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [lockedAssessments, setLockedAssessments] = useState<any[]>([]);
     const [showLockModal, setShowLockModal] = useState(false);
     const [showArchivedModal, setShowArchivedModal] = useState(false);
+    // Add state
+    const [showArchiveStudentModal, setShowArchiveStudentModal] = useState(false);
+    // Add with other state
+    const [showStudentReportModal, setShowStudentReportModal] = useState(false);
+    const [studentReportArchives, setStudentReportArchives] = useState<any[]>([]);
+    const [schoolName, setSchoolName] = useState<string>('School Name');
 
     // Class management state
     const [classes, setClasses] = useState<any[]>([]);
@@ -932,6 +944,44 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         }
     };
 
+    // Add function
+    const loadStudentReportArchives = async (classId: string, term: string) => {
+        try {
+            const data = await fetchStudentReportArchives(classId, term);
+            setStudentReportArchives(data);
+            setShowStudentReportModal(true);
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to load student reports', true);
+        }
+    };
+
+    const handleArchiveStudentReports = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm') => {
+        try {
+            await archiveStudentReports(classId, term, assessmentType);
+            showMessage('Student reports archived successfully!');
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to archive student reports', true);
+        }
+    };
+
+    const handleSendReportEmail = async (archiveId: string) => {
+        try {
+            await sendReportEmail(archiveId);
+            showMessage('Email sent successfully!');
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to send email', true);
+        }
+    };
+
+    const handleSendReportWhatsApp = async (archiveId: string) => {
+        try {
+            await sendReportWhatsApp(archiveId);
+            showMessage('WhatsApp sent successfully!');
+        } catch (error: any) {
+            showMessage(error.message || 'Failed to send WhatsApp', true);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-slate-100">
             <AdminHeader onBack={onBack} />
@@ -1155,6 +1205,48 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                         <span>📚</span> View Archives
                                     </button>
 
+
+                                    <button
+                                        onClick={() => {
+                                            const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                                            if (selectedClass) {
+                                                setShowArchiveStudentModal(true);
+                                            } else {
+                                                showMessage('Please select a class first', true);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>📋</span> Archive Student Reports
+                                    </button>
+
+
+                                    <ArchiveStudentReportsModal
+                                        isOpen={showArchiveStudentModal}
+                                        onClose={() => setShowArchiveStudentModal(false)}
+                                        onArchive={async (assessmentType) => {
+                                            const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                                            if (selectedClass) {
+                                                await handleArchiveStudentReports(selectedClassForResults, selectedClass.term, assessmentType);
+                                            }
+                                        }}
+                                        term={classes.find(c => c.id === selectedClassForResults)?.term}
+                                    />
+
+                                    <button
+                                        onClick={() => {
+                                            const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                                            if (selectedClass) {
+                                                loadStudentReportArchives(selectedClassForResults, selectedClass.term);
+                                            } else {
+                                                showMessage('Please select a class first', true);
+                                            }
+                                        }}
+                                        className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2"
+                                    >
+                                        <span>📄</span> Student Reports
+                                    </button>
+
                                 </div>
                                 <ClassResultsManagement
                                     classes={classes}
@@ -1266,7 +1358,16 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 }}
                 term={classes.find(c => c.id === selectedClassForResults)?.term}
             />
+            <StudentReportArchiveModal
+                isOpen={showStudentReportModal}
+                onClose={() => setShowStudentReportModal(false)}
+                archives={studentReportArchives}
+                schoolName={schoolName} // You'll need to get this
+                onSendEmail={handleSendReportEmail}
+                onSendWhatsApp={handleSendReportWhatsApp}
+            />
         </div>
+
     );
 };
 

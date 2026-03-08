@@ -678,7 +678,8 @@ export const calculateFinalScore = async (subject: any, gradeConfig: any) => {
 // ====================== PUBLISH / ARCHIVE FUNCTIONS ======================
 export const publishAssessment = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm', publish: boolean) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/publish-assessment`;
+  // const url = `${API_BASE_URL}/api/students/publish-assessment`;
+  const url = `${API_BASE_URL}/api/classes/publish-assessment`;  // ✅ FIXED
 
   const res = await fetch(url, {
     method: 'POST',
@@ -695,7 +696,8 @@ export const publishAssessment = async (classId: string, term: string, assessmen
 
 export const archiveResults = async (classId: string, term: string, academicYear: string) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/archive-results`;
+  // const url = `${API_BASE_URL}/api/students/archive-results`;
+  const url = `${API_BASE_URL}/api/classes/archive-results`;  // ✅ FIXED
 
   const res = await fetch(url, {
     method: 'POST',
@@ -712,8 +714,8 @@ export const archiveResults = async (classId: string, term: string, academicYear
 
 export const fetchArchivedResults = async (classId: string, term: string, academicYear: string) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;
-
+  // const url = `${API_BASE_URL}/api/students/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;
+  const url = `${API_BASE_URL}/api/classes/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;  // ✅ FIXED
   const res = await fetch(url, {
     headers: authHeaders()
   });
@@ -728,7 +730,8 @@ export const fetchArchivedResults = async (classId: string, term: string, academ
 // ====================== LOCK FUNCTIONS ======================
 export const lockResults = async (classId: string, term: string, lock: boolean) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/lock-results`;
+  // const url = `${API_BASE_URL}/api/students/lock-results`;
+  const url = `${API_BASE_URL}/api/classes/lock-results`;  // ✅ FIXED
 
   const res = await fetch(url, {
     method: 'POST',
@@ -746,7 +749,8 @@ export const lockResults = async (classId: string, term: string, lock: boolean) 
 // ====================== LOCKED ASSESSMENTS FUNCTIONS ======================
 export const fetchLockedAssessments = async (classId: string, term: string) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/locked-assessments?classId=${classId}&term=${term}${schoolId ? `&schoolId=${schoolId}` : ''}`;
+  // const url = `${API_BASE_URL}/api/students/locked-assessments?classId=${classId}&term=${term}${schoolId ? `&schoolId=${schoolId}` : ''}`;
+  const url = `${API_BASE_URL}/api/classes/locked-assessments?classId=${classId}&term=${term}${schoolId ? `&schoolId=${schoolId}` : ''}`;  // ✅ FIXED
 
   const res = await fetch(url, {
     headers: authHeaders()
@@ -755,6 +759,72 @@ export const fetchLockedAssessments = async (classId: string, term: string) => {
   if (!res.ok) {
     if (res.status === 404) return [];
     throw new Error('Failed to fetch locked assessments');
+  }
+  return res.json();
+};
+// ====================== STUDENT REPORT ARCHIVE FUNCTIONS ======================
+export const archiveStudentReports = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm') => {
+  const schoolId = getSchoolId();
+  const url = `${API_BASE_URL}/api/students/archive-student-reports`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ classId, term, assessmentType, schoolId }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to archive student reports');
+  }
+  return res.json();
+};
+
+export const sendReportEmail = async (archiveId: string) => {
+  const schoolId = getSchoolId();
+  const url = `${API_BASE_URL}/api/students/send-report/${archiveId}/email?schoolId=${schoolId}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to send email');
+  }
+  return res.json();
+};
+
+export const sendReportWhatsApp = async (archiveId: string) => {
+  const schoolId = getSchoolId();
+  const url = `${API_BASE_URL}/api/students/send-report/${archiveId}/whatsapp?schoolId=${schoolId}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to send WhatsApp');
+  }
+  return res.json();
+};
+
+export const fetchStudentReportArchives = async (classId?: string, term?: string) => {
+  const schoolId = getSchoolId();
+  let url = `${API_BASE_URL}/api/students/student-report-archives?schoolId=${schoolId}`;
+  if (classId) url += `&classId=${classId}`;
+  if (term) url += `&term=${term}`;
+
+  const res = await fetch(url, {
+    headers: authHeaders()
+  });
+
+  if (!res.ok) {
+    if (res.status === 404) return [];
+    throw new Error('Failed to fetch student report archives');
   }
   return res.json();
 };
