@@ -94,18 +94,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
         return 'F';
     };
 
-    // const calculateAverage = (subjects: StudentData['subjects'], type: 'qa1' | 'qa2' | 'endOfTerm'): string => {
-    //     const validSubjects = subjects.filter(s => {
-    //         const score = s[type];
-    //         return score !== null && score !== undefined && score > 0;
-    //     });
-
-    //     if (validSubjects.length === 0) return 'N/A';
-
-    //     const total = validSubjects.reduce((acc, s) => acc + s[type], 0);
-    //     return (total / validSubjects.length).toFixed(1);
-    // };
-
     const calculateAverage = (
         subjects: StudentData['subjects'],
         type: 'qa1' | 'qa2' | 'endOfTerm'
@@ -128,26 +116,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
         return (total / validSubjects.length).toFixed(1);
     };
 
-    // CORRECTED: Calculate total marks scored for the assessment
-    // const calculateTotalScored = (): number => {
-    //     // const subjectsWithScores = studentData.subjects.filter(subject =>
-    //     //     hasValidScore(subject[assessmentType])
-    //     // );
-
-    //     const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s, assessmentType))
-
-
-    //     if (subjectsWithScores.length === 0) return 0;
-
-    //     const total = subjectsWithScores.reduce((sum, subject) => {
-    //         return sum + subject[assessmentType]!;
-    //     }, 0);
-
-
-    //     return Math.round(total);
-
-    //     // return total.toFixed(1);
-    // };
 
     const calculateTotalScored = (): number => {
         const subjectsWithScores = studentData.subjects.filter(s =>
@@ -186,21 +154,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
         return (total / subjectsWithScores.length).toFixed(1);
     };
 
-    // const hasValidScore = (score: number | null | undefined): boolean => {
-    //     return score !== null && score !== undefined && score > 0;
-    // };
-    // const hasValidScore = (score: number | null | undefined, absentFlag?: boolean): boolean => {
-    //     // If student was absent, return true (we want to show AB)
-    //     if (absentFlag === true) return true;
-
-    //     // Check if score is a valid number (including 0)
-    //     if (score === null || score === undefined) return false;
-    //     if (isNaN(score)) return false;
-
-    //     // Allow 0 as a valid score
-    //     return true;
-    // };
-
     const hasValidScore = (
         subject: any,
         type: 'qa1' | 'qa2' | 'endOfTerm'
@@ -223,18 +176,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
         return typeof score === 'number' && !isNaN(score);
     };
 
-
-    // const hasAssessmentScores = (type: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
-    //     if (!studentData || !studentData.subjects || studentData.subjects.length === 0) {
-    //         return false;
-    //     }
-    //     return studentData.subjects.some(subject => {
-    //         const score = subject[type];
-    //         // Check if score was ACTUALLY entered (not null/undefined)
-    //         // This allows 0 and AB to pass through
-    //         return score !== null && score !== undefined;
-    //     });
-    // };
 
     const hasAssessmentScores = (assessmentType: 'qa1' | 'qa2' | 'endOfTerm'): boolean => {
         if (!studentData || !studentData.subjects || studentData.subjects.length === 0) return false;
@@ -291,25 +232,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
 
             y += 22;
 
-            // // ===== ASSESSMENT SUMMARY =====
-            // doc.setFont('helvetica', 'bold');
-            // doc.text('ASSESSMENT SUMMARY', 14, y);
-            // y += 4;
-            // doc.setFont('helvetica', 'normal');
-
-            // const avgScore = calculateAssessmentAverage();
-            // const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
-            // const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-
-            // doc.text(`Assessment Type: ${getAssessmentTitle(assessmentType)}`, 14, y);
-            // doc.text(`Average Score: ${avgScore === 'N/A' ? 'No scores' : `${avgScore}%`}`, 14, y + 6);
-            // doc.text(`Pass Mark: ${passMark}%`, 14, y + 12);
-            // doc.text(`Subjects Assessed: ${subjectsWithScores.length}/${studentData.subjects.length}`, 120, y);
-
-            // y += 20;
-
-            // ===== ASSESSMENT SUMMARY =====
-
             // ===== ASSESSMENT SUMMARY =====
             doc.setFont('helvetica', 'bold');
             doc.text('ASSESSMENT SUMMARY', 14, y);
@@ -348,43 +270,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
 
             // Final spacing before Results table
             y += 10;
-            // doc.setFont('helvetica', 'bold');
-            // doc.text('ASSESSMENT SUMMARY', 14, y);
-            // y += 7;
-
-            // doc.setFont('helvetica', 'normal');
-
-            // // 1. Data Calculations (One-time only)
-            // const avgScore = calculateAssessmentAverage();
-            // const numericAvg = avgScore === 'N/A' ? null : parseFloat(avgScore);
-            // const subjectsWithScores = studentData.subjects.filter(s => hasValidScore(s[assessmentType]));
-            // const passMark = studentData.gradeConfiguration?.pass_mark || 50;
-
-            // // Determine Status and Grade
-            // const assessmentStatus = numericAvg !== null ? (numericAvg >= passMark ? 'PASSED' : 'FAILED') : 'N/A';
-            // const assessmentGrade = numericAvg !== null ? calculateGrade(numericAvg, passMark) : 'N/A';
-            // const avgText = numericAvg !== null ? `${avgScore}%` : 'N/A';
-
-            // // 2. Row 1: Assessment Type & Subjects Count
-            // doc.text(`Assessment Type: ${getAssessmentTitle(assessmentType)}`, 14, y);
-            // doc.text(`Subjects Assessed: ${subjectsWithScores.length}/${studentData.subjects.length}`, 120, y);
-            // y += 7;
-
-            // // 3. Row 2: Average Score & Class Position
-            // doc.text(`Average Score: ${avgText}`, 14, y);
-            // doc.text(`Class Position: ${studentData.classRank || 'N/A'}`, 120, y);
-
-            // y += 7;
-
-            // // 4. Row 3: Overall Grade & Overall Status
-            // doc.text(`Overall Grade: ${assessmentGrade}`, 14, y);
-            // doc.text(`Overall Status: ${assessmentStatus}`, 120, y);
-
-            // // Final spacing for the next section
-            // y += 10;
-
-
-
             // ===== RESULTS TABLE =====
             doc.setFont('helvetica', 'bold');
             doc.text('RESULTS', 14, y);
@@ -402,19 +287,7 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
             );
 
             if (subjectsWithValidScores.length > 0) {
-                // const tableBody = subjectsWithValidScores.map(subject => {
-                //     const score = subject[assessmentType]!;
-                //     const grade = calculateGrade(score, passMark);
-                //     const remark = grade === 'F' ? 'Failed' : 'Passed';
 
-                //     return [
-                //         subject.name,
-                //         '100', // Each subject has total marks of 100
-                //         score.toFixed(1),
-                //         grade,
-                //         remark
-                //     ];
-                // });
                 const tableBody = subjectsWithValidScores.map(subject => {
                     const score = subject[assessmentType];
 
@@ -481,74 +354,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
                 doc.text('No assessment scores available for this period.', 14, y);
                 y += 10;
             }
-
-            // // ===== PERFORMANCE ANALYSIS =====
-            // if (subjectsWithValidScores.length > 0) {
-            //     doc.setFont('helvetica', 'bold');
-            //     doc.text('PERFORMANCE ANALYSIS', 14, y);
-            //     y += 4;
-            //     doc.setFont('helvetica', 'normal');
-
-            //     // Best subject
-            //     const bestSubject = subjectsWithValidScores.reduce((best, cur) =>
-            //         cur[assessmentType]! > best[assessmentType]! ? cur : best
-            //     );
-
-            //     // Weak subjects (C, D, F grades)
-            //     const weakSubjects = subjectsWithValidScores.filter(subject => {
-            //         const grade = calculateGrade(subject[assessmentType]!, passMark);
-            //         return ['C', 'D', 'F'].includes(grade);
-            //     });
-
-            //     const weakestSubject = weakSubjects.length > 0
-            //         ? weakSubjects.reduce((w, c) =>
-            //             c[assessmentType]! < w[assessmentType]! ? c : w
-            //         )
-            //         : null;
-
-            //     doc.text(`Best Subject: ${bestSubject.name}`, 14, y);
-            //     doc.text(`Score: ${bestSubject[assessmentType]}%`, 14, y + 6);
-
-            //     doc.text(
-            //         `Lowest Subject: ${weakestSubject ? weakestSubject.name : 'None'}`,
-            //         120,
-            //         y
-            //     );
-
-            //     if (weakestSubject) {
-            //         doc.text(
-            //             `Score: ${weakestSubject[assessmentType]}%`,
-            //             120,
-            //             y + 6
-            //         );
-            //     }
-
-            //     y += 14;
-
-            //     // Performance stats
-            //     const subjectsPassed = subjectsWithValidScores.filter(
-            //         s => calculateGrade(s[assessmentType]!, passMark) !== 'F'
-            //     ).length;
-
-            //     const abGrades = subjectsWithValidScores.filter(s =>
-            //         ['A', 'B'].includes(calculateGrade(s[assessmentType]!, passMark))
-            //     ).length;
-
-            //     const cdGrades = subjectsWithValidScores.filter(s =>
-            //         ['C', 'D'].includes(calculateGrade(s[assessmentType]!, passMark))
-            //     ).length;
-
-            //     const belowPass = subjectsWithValidScores.filter(
-            //         s => s[assessmentType]! < passMark
-            //     ).length;
-
-            //     doc.text(`Subjects Passed: ${subjectsPassed}/${subjectsWithValidScores.length}`, 14, y);
-            //     doc.text(`A & B Grades: ${abGrades}`, 14, y + 6);
-            //     doc.text(`C & D Grades: ${cdGrades}`, 14, y + 12);
-            //     doc.text(`Subjects Below ${passMark}% Pass Mark: ${belowPass}`, 14, y + 18);
-
-            //     y += 28;
-            // }
 
             // ===== PERFORMANCE ANALYSIS =====
             if (subjectsWithValidScores.length > 0) {
@@ -757,65 +562,7 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
 
             {/* Existing assessment results display */}
             <div className="grid gap-4">
-                {/* {studentData.subjects.map((subject, index) => {
-                    const score = subject[assessmentType];
-                    const hasScore = hasValidScore(score);
 
-                    const gradeForThisTab = (() => {
-                        if (!hasScore) return 'N/A';
-                        if (score >= 80) return 'A';
-                        if (score >= 70) return 'B';
-                        if (score >= 60) return 'C';
-                        if (score >= passMark) return 'D';
-                        return 'F';
-                    })();
-
-                    return (
-                        <div key={index} className="bg-white rounded-xl p-4 border border-slate-200 hover:border-indigo-200 transition-colors">
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                <div className="flex-1">
-                                    <h5 className="font-semibold text-slate-800">{subject.name}</h5>
-                                    {hasScore ? (
-                                        <>
-                                            <div className="mt-2 h-2 bg-slate-200 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full ${score >= 80 ? 'bg-emerald-500' :
-                                                        score >= 60 ? 'bg-blue-500' :
-                                                            score >= passMark ? 'bg-amber-500' :
-                                                                'bg-red-500'
-                                                        } transition-all duration-500`}
-                                                    style={{ width: `${Math.min(score, 100)}%` }}
-                                                ></div>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <div className="mt-2 text-sm text-amber-600 italic">
-                                            No test conducted for {getAssessmentTitle(assessmentType)}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                        {hasScore ? (
-                                            <>
-                                                <p className="text-2xl font-bold text-slate-800">{score}%</p>
-                                                <p className="text-xs text-slate-500">Score</p>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <p className="text-2xl font-bold text-slate-400">N/A</p>
-                                                <p className="text-xs text-slate-400">No Score</p>
-                                            </>
-                                        )}
-                                    </div>
-                                    <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getGradeColor(gradeForThisTab)}`}>
-                                        {gradeForThisTab}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })} */}
 
                 {studentData.subjects.map((subject, index) => {
                     const score = subject[assessmentType];
@@ -891,50 +638,6 @@ const QAAssessment: React.FC<QAAssessmentProps> = ({ studentData, activeTab }) =
                 })}
             </div>
 
-            {/* Performance Summary Card */}
-            {/* {hasAssessmentScores(assessmentType) && (
-                <div className="bg-gradient-to-br from-slate-50 to-indigo-50 rounded-xl p-6 border border-indigo-100 mt-6">
-                    <h5 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                        Performance Summary
-                    </h5>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="bg-white p-3 rounded-lg text-center">
-                            <p className="text-sm text-slate-500">Average Score</p>
-                            <p className="text-2xl font-bold text-indigo-700">
-                                {avgScore}%
-                            </p>
-                        </div>
-                        <div className="bg-white p-3 rounded-lg text-center">
-                            <p className="text-sm text-slate-500">Total Scored</p>
-                            <p className="text-2xl font-bold text-emerald-700">
-                                {totalScored}<span className="text-sm text-slate-400">/{subjectsWithScores.length * 100}</span>
-                            </p>
-                        </div>
-                        <div className="bg-white p-3 rounded-lg text-center">
-                            <p className="text-sm text-slate-500">Pass Rate</p>
-                            <p className="text-2xl font-bold text-blue-700">
-                                {(() => {
-                                    if (subjectsWithScores.length === 0) return '0%';
-                                    const passed = subjectsWithScores.filter(s => s[assessmentType]! >= passMark).length;
-                                    return `${((passed / subjectsWithScores.length) * 100).toFixed(1)}%`;
-                                })()}
-                            </p>
-                        </div>
-                        <div className="bg-white p-3 rounded-lg text-center">
-                            <p className="text-sm text-slate-500">Status</p>
-                            <p className={`text-xl font-bold ${parseFloat(avgScore) >= passMark
-                                ? 'text-emerald-700'
-                                : 'text-red-700'
-                                }`}>
-                                {parseFloat(avgScore) >= passMark
-                                    ? 'PASSING'
-                                    : 'NEEDS IMPROVEMENT'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )} */}
-            {/* Teacher's Remark (Replaces the commented out Performance Summary) */}
             {hasAssessmentScores(assessmentType) && (
                 <div className="mt-8 bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
                     <h5 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">

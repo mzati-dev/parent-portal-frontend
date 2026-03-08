@@ -639,12 +639,12 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             });
 
             // Auto-calculate ranks
-            // if (selectedStudent.class?.id) {
-            //     await calculateAndUpdateRanks(
-            //         selectedStudent.class.id,
-            //         selectedStudent.term || 'Term 1, 2024/2025'
-            //     );
-            // }
+            if (selectedStudent.class?.id) {
+                await calculateAndUpdateRanks(
+                    selectedStudent.class.id,
+                    selectedStudent.term || 'Term 1, 2024/2025'
+                );
+            }
 
             // === START: AUTO-SWITCH TO END OF TERM ONLY IF QA1/QA2 ENTERED ===
             // Check if QA1/QA2 scores were entered but NO End of Term

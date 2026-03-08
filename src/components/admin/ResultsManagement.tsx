@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Save, X } from 'lucide-react';
 import { SubjectRecord } from '@/services/studentService';
 import { GradeConfiguration } from '@/services/gradeConfigService';
 import { Student, Assessment, ReportCardData } from '@/types/admin';
@@ -70,6 +70,7 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
         // teacher_remarks: false
     });
     const [calculatingClass, setCalculatingClass] = useState<string | null>(null);
+    const [showEmptyFieldsWarning, setShowEmptyFieldsWarning] = useState(false);
     // const predefinedRemarks = [
     //     "Outstanding performance. Excellent understanding of concepts.",
     //     "Very good performance. Consistent effort and strong results.",
@@ -191,11 +192,20 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
         await saveAllResults();
     };
 
+    const emptyFieldsCount = assessments.reduce((count, assessment) => {
+        let empty = 0;
+        if (assessment.qa1 === null && !assessment.qa1_absent) empty++;
+        if (assessment.qa2 === null && !assessment.qa2_absent) empty++;
+        if (assessment.end_of_term === null && !assessment.end_of_term_absent) empty++;
+        return count + empty;
+    }, 0);
+
     return (
         <div className="space-y-6">
             {!selectedStudent ? (
                 <>
                     <h2 className="text-lg font-semibold text-slate-800">Select a Student to Enter Results</h2>
+
 
                     <div className="space-y-8">
                         {classes.map(cls => {
@@ -233,8 +243,8 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                                                 }}
                                                 disabled={calculatingClass === cls.id}
                                                 className={`px-4 py-2 font-semibold text-sm rounded-lg shadow-md transition-all duration-200 flex items-center gap-2 ${calculatingClass === cls.id
-                                                        ? 'bg-gray-400 text-white cursor-not-allowed'
-                                                        : 'bg-red-600 hover:bg-red-700 text-white hover:shadow-lg active:bg-red-800'
+                                                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                                                    : 'bg-red-600 hover:bg-red-700 text-white hover:shadow-lg active:bg-red-800'
                                                     }`}
                                             >
                                                 {calculatingClass === cls.id ? (
@@ -394,6 +404,30 @@ const ResultsManagement: React.FC<ResultsManagementProps> = ({
                             )}
                         </button>
                     </div>
+
+                    {isTeacherView && emptyFieldsCount > 0 && (
+                        <div className="mb-4 p-3 bg-amber-50 border border-amber-300 rounded-lg">
+                            <div className="flex items-start gap-2">
+                                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm font-semibold text-amber-800">
+                                        ⚠️ All score fields for each assessment must be completed
+                                    </p>
+
+                                    <p className="text-xs text-amber-700 mt-1">
+                                        • Enter <span className="font-bold bg-amber-100 px-1 rounded">0</span> if the student scored zero<br />
+                                        • Select <span className="font-bold bg-amber-100 px-1 rounded">AB</span> if the student was absent<br />
+                                        • <span className="font-bold text-red-700 bg-red-100 px-2 py-0.5 rounded">
+                                            After entering all subjects for an assessment type, do not leave any field for that particular assessment blank
+                                        </span>
+                                        <p className="text-sm text-red-700 mt-2">
+                                            ⚠️ Empty fields will be treated as "no data" and will <span className="font-bold underline">WRONGLY AFFECT RANKINGS!</span>
+                                        </p>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                         <div className="px-6 py-4 bg-slate-50 border-b border-slate-200">
