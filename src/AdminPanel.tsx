@@ -1233,7 +1233,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             />
 
             {/* Archived Results View */}
-           // Update the modal at the bottom:
+
             <ArchivedResultsView
                 isOpen={showArchivedModal}  // ✅ Use separate state
                 onClose={() => {
