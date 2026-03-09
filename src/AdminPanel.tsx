@@ -15,7 +15,8 @@ import {
     archiveStudentReports,
     sendReportEmail,
     sendReportWhatsApp,
-    fetchStudentReportArchives
+    fetchStudentReportArchives,
+    generateReportCards
 } from '@/services/studentService';
 import {
     getActiveGradeConfig, getAllGradeConfigs, createGradeConfig,
@@ -41,7 +42,8 @@ import PublishModal from './components/admin/modals/PublishModal';
 import LockedAssessmentsModal from './components/admin/modals/LockedAssessmentsModal';
 import LockModal from './components/admin/modals/LockModal';
 import StudentReportArchiveModal from './components/admin/modals/StudentReportArchiveModal';
-import ArchiveStudentReportsModal from './components/admin/modals/ArchiveStudentReportsModal';
+// import ArchiveStudentReportsModal from './components/admin/modals/ArchiveStudentReportsModal';
+import PreviewModal from './components/admin/modals/PreviewModal';
 
 interface AdminPanelProps {
     onBack: () => void;
@@ -75,6 +77,9 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const [showStudentReportModal, setShowStudentReportModal] = useState(false);
     const [studentReportArchives, setStudentReportArchives] = useState<any[]>([]);
     const [schoolName, setSchoolName] = useState<string>('School Name');
+    // Add with other state declarations
+    const [previewData, setPreviewData] = useState<any[]>([]);
+    const [showPreviewModal, setShowPreviewModal] = useState(false);
 
     // Class management state
     const [classes, setClasses] = useState<any[]>([]);
@@ -500,129 +505,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         ));
     };
 
-    // const saveAllResults = async () => {
-    //     if (!selectedStudent) return;
-    //     setSavingResults(true);
-    //     try {
-    //         const passMark = activeConfig?.pass_mark || 50;
 
-    //         // Save assessments
-    //         for (const assessment of assessments) {
-    //             if (assessment.qa1 > 0) {
-    //                 await upsertAssessment({
-    //                     student_id: selectedStudent.id,
-    //                     subject_id: assessment.subject_id,
-    //                     assessment_type: 'qa1',
-    //                     score: assessment.qa1,
-    //                     grade: calculateGrade(assessment.qa1, passMark)
-    //                 });
-    //             }
-    //             if (assessment.qa2 > 0) {
-    //                 await upsertAssessment({
-    //                     student_id: selectedStudent.id,
-    //                     subject_id: assessment.subject_id,
-    //                     assessment_type: 'qa2',
-    //                     score: assessment.qa2,
-    //                     grade: calculateGrade(assessment.qa2, passMark)
-    //                 });
-    //             }
-    //             if (assessment.end_of_term > 0) {
-    //                 await upsertAssessment({
-    //                     student_id: selectedStudent.id,
-    //                     subject_id: assessment.subject_id,
-    //                     assessment_type: 'end_of_term',
-    //                     score: assessment.end_of_term,
-    //                     grade: calculateGrade(assessment.end_of_term, passMark)
-    //                 });
-    //             }
-    //         }
-
-    //         // Save report card
-    //         await upsertReportCard({
-    //             student_id: selectedStudent.id,
-    //             term: selectedStudent.term || 'Term 1, 2024/2025',
-    //             days_present: reportCard.days_present,
-    //             days_absent: reportCard.days_absent,
-    //             days_late: reportCard.days_late,
-    //             teacher_remarks: reportCard.teacher_remarks
-    //         });
-
-    //         // Auto-calculate ranks
-    //         if (selectedStudent.class?.id) {
-    //             await calculateAndUpdateRanks(
-    //                 selectedStudent.class.id,
-    //                 selectedStudent.term || 'Term 1, 2024/2025'
-    //             );
-    //         }
-
-    //         showMessage('Results saved and ranks auto-calculated!');
-    //         loadStudentResults(selectedStudent);
-    //     } catch (err: any) {
-    //         showMessage(err.message || 'Failed to save results', true);
-    //     } finally {
-    //         setSavingResults(false);
-    //     }
-    // };
-
-    // const saveAllResults = async () => {
-    //     if (!selectedStudent) return;
-    //     setSavingResults(true);
-    //     try {
-    //         const passMark = activeConfig?.pass_mark || 50;
-
-    //         // Save ALL assessments (including 0)
-    //         for (const assessment of assessments) {
-    //             await upsertAssessment({
-    //                 student_id: selectedStudent.id,
-    //                 subject_id: assessment.subject_id,
-    //                 assessment_type: 'qa1',
-    //                 score: assessment.qa1,
-    //                 grade: calculateGrade(assessment.qa1, passMark)
-    //             });
-
-    //             await upsertAssessment({
-    //                 student_id: selectedStudent.id,
-    //                 subject_id: assessment.subject_id,
-    //                 assessment_type: 'qa2',
-    //                 score: assessment.qa2,
-    //                 grade: calculateGrade(assessment.qa2, passMark)
-    //             });
-
-    //             await upsertAssessment({
-    //                 student_id: selectedStudent.id,
-    //                 subject_id: assessment.subject_id,
-    //                 assessment_type: 'end_of_term',
-    //                 score: assessment.end_of_term,
-    //                 grade: calculateGrade(assessment.end_of_term, passMark)
-    //             });
-    //         }
-
-    //         // Save report card
-    //         await upsertReportCard({
-    //             student_id: selectedStudent.id,
-    //             term: selectedStudent.term || 'Term 1, 2024/2025',
-    //             days_present: reportCard.days_present,
-    //             days_absent: reportCard.days_absent,
-    //             days_late: reportCard.days_late,
-    //             teacher_remarks: reportCard.teacher_remarks
-    //         });
-
-    //         // Auto-calculate ranks
-    //         if (selectedStudent.class?.id) {
-    //             await calculateAndUpdateRanks(
-    //                 selectedStudent.class.id,
-    //                 selectedStudent.term || 'Term 1, 2024/2025'
-    //             );
-    //         }
-
-    //         showMessage('Results saved and ranks auto-calculated!');
-    //         loadStudentResults(selectedStudent);
-    //     } catch (err: any) {
-    //         showMessage(err.message || 'Failed to save results', true);
-    //     } finally {
-    //         setSavingResults(false);
-    //     }
-    // };
 
 
     const saveAllResults = async () => {
@@ -714,117 +597,6 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             setSavingResults(false);
         }
     };
-    // const saveAllResults = async () => {
-    //     if (!selectedStudent) return;
-    //     setSavingResults(true);
-    //     try {
-    //         const passMark = activeConfig?.pass_mark || 50;
-
-    //         // Save assessments - IMPORTANT: Save even when score is 0 to clear it
-    //         for (const assessment of assessments) {
-    //             // Always save QA1 score (even if 0)
-    //             await upsertAssessment({
-    //                 student_id: selectedStudent.id,
-    //                 subject_id: assessment.subject_id,
-    //                 assessment_type: 'qa1',
-    //                 score: assessment.qa1,
-    //                 grade: calculateGrade(assessment.qa1, passMark)
-    //             });
-
-    //             // Always save QA2 score (even if 0)
-    //             await upsertAssessment({
-    //                 student_id: selectedStudent.id,
-    //                 subject_id: assessment.subject_id,
-    //                 assessment_type: 'qa2',
-    //                 score: assessment.qa2,
-    //                 grade: calculateGrade(assessment.qa2, passMark)
-    //             });
-
-    //             // Always save end_of_term score (even if 0)
-    //             await upsertAssessment({
-    //                 student_id: selectedStudent.id,
-    //                 subject_id: assessment.subject_id,
-    //                 assessment_type: 'end_of_term',
-    //                 score: assessment.end_of_term,
-    //                 grade: calculateGrade(assessment.end_of_term, passMark)
-    //             });
-    //         }
-
-    //         // Save report card
-    //         await upsertReportCard({
-    //             student_id: selectedStudent.id,
-    //             term: selectedStudent.term || 'Term 1, 2024/2025',
-    //             days_present: reportCard.days_present,
-    //             days_absent: reportCard.days_absent,
-    //             days_late: reportCard.days_late,
-    //             teacher_remarks: reportCard.teacher_remarks
-    //         });
-
-    //         // Auto-calculate ranks
-    //         if (selectedStudent.class?.id) {
-    //             await calculateAndUpdateRanks(
-    //                 selectedStudent.class.id,
-    //                 selectedStudent.term || 'Term 1, 2024/2025'
-    //             );
-    //         }
-
-    //         showMessage('Results saved and ranks auto-calculated!');
-    //         loadStudentResults(selectedStudent);
-    //     } catch (err: any) {
-    //         showMessage(err.message || 'Failed to save results', true);
-    //     } finally {
-    //         setSavingResults(false);
-    //     }
-    // };
-
-
-    // const fixAllRanksOnce = async () => {
-    //     for (const classItem of classes) {
-    //         await calculateAndUpdateRanks(classItem.id, classItem.term);
-    //     }
-    //     alert('All ranks updated!');
-    // };
-
-    // const fixAllRanksOnce = async () => {
-    //     // DEBUG 1: Did the button click actually register?
-    //     alert('1. Button was clicked! Starting process...');
-
-    //     // DEBUG 2: Do we have classes?
-    //     console.log('Classes data:', classes);
-    //     if (!classes || classes.length === 0) {
-    //         alert('STOPPED: The "classes" list is empty. Please wait for the page to load fully or refresh.');
-    //         return;
-    //     }
-
-    //     alert(`2. Found ${classes.length} classes. Starting loop...`);
-    //     setSavingResults(true); // Using your existing loading state
-
-    //     try {
-    //         let count = 0;
-    //         for (const classItem of classes) {
-    //             // DEBUG 3: Loop progress
-    //             console.log(`Processing ${classItem.name}...`);
-
-    //             await calculateAndUpdateRanks(
-    //                 classItem.id,
-    //                 classItem.term || 'Term 1, 2024/2025'
-    //             );
-    //             count++;
-    //         }
-
-    //         // DEBUG 4: Finished
-    //         alert(`3. Success! Updated ranks for ${count} classes.`);
-
-    //         // IMPORTANT: Reload data to see changes
-    //         window.location.reload();
-
-    //     } catch (err: any) {
-    //         console.error(err);
-    //         alert(`ERROR: ${err.message}`);
-    //     } finally {
-    //         setSavingResults(false);
-    //     }
-    // };
 
     // Grade config handlers
     const handleSaveConfig = async (e: React.FormEvent) => {
@@ -948,17 +720,34 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     const loadStudentReportArchives = async (classId: string, term: string) => {
         try {
             const data = await fetchStudentReportArchives(classId, term);
+            console.log('🔍 RAW Archived data:', data); // 👈 CHECK THIS
+            console.log('🔍 Data length:', data?.length);
+            console.log('🔍 Archived data:', data); // 👈 ADD THIS LINE
             setStudentReportArchives(data);
             setShowStudentReportModal(true);
         } catch (error: any) {
             showMessage(error.message || 'Failed to load student reports', true);
         }
     };
-
-    const handleArchiveStudentReports = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm') => {
+    const handleArchiveStudentReports = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm' | 'overall' | 'all') => {
         try {
-            await archiveStudentReports(classId, term, assessmentType);
-            showMessage('Student reports archived successfully!');
+            if (assessmentType === 'all') {
+                // Archive all three types (not overall since overall is calculated)
+                await archiveStudentReports(classId, term, 'qa1');
+                await archiveStudentReports(classId, term, 'qa2');
+                await archiveStudentReports(classId, term, 'endOfTerm');
+                showMessage('All student reports archived successfully!');
+            } else if (assessmentType === 'overall') {
+                // For overall, you might archive all three or handle differently
+                // Since overall is calculated from the three, you might want to archive all three
+                await archiveStudentReports(classId, term, 'qa1');
+                await archiveStudentReports(classId, term, 'qa2');
+                await archiveStudentReports(classId, term, 'endOfTerm');
+                showMessage('Overall report card archived successfully!');
+            } else {
+                await archiveStudentReports(classId, term, assessmentType);
+                showMessage('Student reports archived successfully!');
+            }
         } catch (error: any) {
             showMessage(error.message || 'Failed to archive student reports', true);
         }
@@ -1204,24 +993,28 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                     >
                                         <span>📚</span> View Archives
                                     </button>
-
-
                                     <button
                                         onClick={() => {
                                             const selectedClass = classes.find(c => c.id === selectedClassForResults);
                                             if (selectedClass) {
-                                                setShowArchiveStudentModal(true);
+                                                generateReportCards(selectedClassForResults, selectedClass.term, 'endOfTerm')
+                                                    .then(data => {
+                                                        // You need state for this
+                                                        setPreviewData(data);
+                                                        setShowPreviewModal(true);
+                                                    })
+                                                    .catch(err => showMessage(err.message, true));
                                             } else {
                                                 showMessage('Please select a class first', true);
                                             }
                                         }}
-                                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg flex items-center gap-2"
+                                        className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg flex items-center gap-2"
                                     >
                                         <span>📋</span> Archive Student Reports
                                     </button>
 
 
-                                    <ArchiveStudentReportsModal
+                                    {/* <ArchiveStudentReportsModal
                                         isOpen={showArchiveStudentModal}
                                         onClose={() => setShowArchiveStudentModal(false)}
                                         onArchive={async (assessmentType) => {
@@ -1231,7 +1024,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                                             }
                                         }}
                                         term={classes.find(c => c.id === selectedClassForResults)?.term}
-                                    />
+                                    /> */}
 
                                     <button
                                         onClick={() => {
@@ -1365,6 +1158,19 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 schoolName={schoolName} // You'll need to get this
                 onSendEmail={handleSendReportEmail}
                 onSendWhatsApp={handleSendReportWhatsApp}
+            />
+            <PreviewModal
+                isOpen={showPreviewModal}
+                onClose={() => setShowPreviewModal(false)}
+                data={previewData}
+                onArchive={async (type) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        await handleArchiveStudentReports(selectedClassForResults, selectedClass.term, type);
+                    }
+                }}
+                classId={selectedClassForResults}
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
             />
         </div>
 

@@ -58,6 +58,10 @@ export interface Subject {
   endOfTerm: number;
   grade: string;
   finalScore?: number;
+  // ADD THESE THREE LINES:
+  qa1_absent?: boolean;
+  qa2_absent?: boolean;
+  endOfTerm_absent?: boolean;
 }
 
 export interface StudentData {
@@ -762,10 +766,11 @@ export const fetchLockedAssessments = async (classId: string, term: string) => {
   }
   return res.json();
 };
+
 // ====================== STUDENT REPORT ARCHIVE FUNCTIONS ======================
 export const archiveStudentReports = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm') => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/archive-student-reports`;
+  const url = `${API_BASE_URL}/api/classes/archive-student-reports`;  // ✅ FIXED
 
   const res = await fetch(url, {
     method: 'POST',
@@ -782,7 +787,7 @@ export const archiveStudentReports = async (classId: string, term: string, asses
 
 export const sendReportEmail = async (archiveId: string) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/send-report/${archiveId}/email?schoolId=${schoolId}`;
+  const url = `${API_BASE_URL}/api/classes/send-report/${archiveId}/email?schoolId=${schoolId}`;  // ✅ FIXED
 
   const res = await fetch(url, {
     method: 'POST',
@@ -798,7 +803,7 @@ export const sendReportEmail = async (archiveId: string) => {
 
 export const sendReportWhatsApp = async (archiveId: string) => {
   const schoolId = getSchoolId();
-  const url = `${API_BASE_URL}/api/students/send-report/${archiveId}/whatsapp?schoolId=${schoolId}`;
+  const url = `${API_BASE_URL}/api/classes/send-report/${archiveId}/whatsapp?schoolId=${schoolId}`;  // ✅ FIXED
 
   const res = await fetch(url, {
     method: 'POST',
@@ -814,7 +819,7 @@ export const sendReportWhatsApp = async (archiveId: string) => {
 
 export const fetchStudentReportArchives = async (classId?: string, term?: string) => {
   const schoolId = getSchoolId();
-  let url = `${API_BASE_URL}/api/students/student-report-archives?schoolId=${schoolId}`;
+  let url = `${API_BASE_URL}/api/classes/student-report-archives?schoolId=${schoolId}`;  // ✅ FIXED
   if (classId) url += `&classId=${classId}`;
   if (term) url += `&term=${term}`;
 
@@ -825,6 +830,38 @@ export const fetchStudentReportArchives = async (classId?: string, term?: string
   if (!res.ok) {
     if (res.status === 404) return [];
     throw new Error('Failed to fetch student report archives');
+  }
+  return res.json();
+};
+// ====================== REPORT CARD GENERATION FUNCTIONS ======================
+export const generateReportCards = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm') => {
+  const schoolId = getSchoolId();
+  const url = `${API_BASE_URL}/api/classes/generate-report-cards?schoolId=${schoolId}`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ classId, term, assessmentType, schoolId }),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to generate report cards');
+  }
+  return res.json();
+};
+
+export const previewReportCards = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm') => {
+  const schoolId = getSchoolId();
+  const url = `${API_BASE_URL}/api/classes/preview-report-cards/${classId}?term=${term}&assessmentType=${assessmentType}&schoolId=${schoolId}`;
+
+  const res = await fetch(url, {
+    headers: authHeaders()
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message || 'Failed to preview report cards');
   }
   return res.json();
 };
