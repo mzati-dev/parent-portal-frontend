@@ -696,10 +696,47 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
             showMessage(error.message || 'Failed to load archived results', true);
         }
     };
-    const handleLockResults = async (classId: string, term: string, lock: boolean) => {
+    // const handleLockResults = async (classId: string, term: string, lock: boolean) => {
+    //     try {
+    //         await lockResults(classId, term, lock);
+    //         showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+    //     } catch (error: any) {
+    //         showMessage(error.message || 'Failed to lock/unlock results', true);
+    //     }
+    // };
+
+    // const handleLockResults = async (
+    //     classId: string,
+    //     term: string,
+    //     assessmentType: 'qa1' | 'qa2' | 'endOfTerm',
+    //     lock: boolean,
+    //     studentIds?: string[]
+    // ) => {
+    //     try {
+    //         await lockResults(classId, term, assessmentType, lock, studentIds);
+    //         showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+    //         if (classId === selectedClassForResults) {
+    //             loadClassResults(classId);
+    //         }
+    //     } catch (error: any) {
+    //         showMessage(error.message || 'Failed to lock/unlock results', true);
+    //     }
+    // };
+
+    const handleLockResults = async (
+        classId: string,
+        term: string,
+        assessmentType: 'qa1' | 'qa2' | 'endOfTerm',
+        lock: boolean,
+        lockReason: 'fee' | 'teacher', // ADD THIS PARAMETER
+        studentIds?: string[]
+    ) => {
         try {
-            await lockResults(classId, term, lock);
+            await lockResults(classId, term, assessmentType, lock, lockReason, studentIds); // ADD lockReason
             showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+            if (classId === selectedClassForResults) {
+                loadClassResults(classId);
+            }
         } catch (error: any) {
             showMessage(error.message || 'Failed to lock/unlock results', true);
         }
@@ -1127,7 +1164,8 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 }}
                 archivedResults={archivedResults}
             />
-            <LockedAssessmentsModal
+
+            {/* <LockedAssessmentsModal
                 isOpen={showLockedModal}
                 onClose={() => setShowLockedModal(false)}
                 assessments={lockedAssessments}
@@ -1138,9 +1176,47 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         loadLockedAssessments(selectedClassForResults, selectedClass.term);
                     }
                 }}
+            /> */}
+            {/* 
+            <LockedAssessmentsModal
+                isOpen={showLockedModal}
+                onClose={() => setShowLockedModal(false)}
+                assessments={lockedAssessments}
+                onUnlock={async (assessmentId, assessmentType) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        await handleLockResults(
+                            selectedClassForResults,
+                            selectedClass.term,
+                            assessmentType as 'qa1' | 'qa2' | 'endOfTerm', // Add 'as' assertion
+                            false
+                        );
+                        loadLockedAssessments(selectedClassForResults, selectedClass.term);
+                    }
+                }}
+            /> */}
+
+            <LockedAssessmentsModal
+                isOpen={showLockedModal}
+                onClose={() => setShowLockedModal(false)}
+                assessments={lockedAssessments}
+                onUnlock={async (assessmentId, assessmentType) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        await handleLockResults(
+                            selectedClassForResults,
+                            selectedClass.term,
+                            assessmentType as 'qa1' | 'qa2' | 'endOfTerm',
+                            false, // lock = false
+                            'teacher', // ADD THIS - lockReason (doesn't matter for unlock)
+                            undefined // studentIds (unlock all)
+                        );
+                        loadLockedAssessments(selectedClassForResults, selectedClass.term);
+                    }
+                }}
             />
 
-            <LockModal
+            {/* <LockModal
                 isOpen={showLockModal}
                 onClose={() => setShowLockModal(false)}
                 onLock={async (assessmentType, lock) => {
@@ -1150,6 +1226,65 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                     }
                 }}
                 term={classes.find(c => c.id === selectedClassForResults)?.term}
+            /> */}
+
+            {/* <LockModal
+                isOpen={showLockModal}
+                onClose={() => setShowLockModal(false)}
+                onLock={async (assessmentType, lock, studentIds) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        try {
+                            await lockResults(
+                                selectedClassForResults,
+                                selectedClass.term,
+                                assessmentType,
+                                lock,
+                                studentIds // Pass the student IDs
+                            );
+                            showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+
+                            // Refresh the class results to show updated lock status
+                            if (selectedClassForResults) {
+                                loadClassResults(selectedClassForResults);
+                            }
+                        } catch (error: any) {
+                            showMessage(error.message || 'Failed to lock/unlock results', true);
+                        }
+                    }
+                }}
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
+                classId={selectedClassForResults} // Pass the class ID
+                students={students} // Pass all students for selection
+            /> */}
+
+            <LockModal
+                isOpen={showLockModal}
+                onClose={() => setShowLockModal(false)}
+                onLock={async (assessmentType, lock, lockReason, studentIds) => {  // ← ADD lockReason
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        try {
+                            await lockResults(
+                                selectedClassForResults,
+                                selectedClass.term,
+                                assessmentType,
+                                lock,
+                                lockReason,
+                                studentIds
+                            );
+                            showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+                            if (selectedClassForResults) {
+                                loadClassResults(selectedClassForResults);
+                            }
+                        } catch (error: any) {
+                            showMessage(error.message || 'Failed to lock/unlock results', true);
+                        }
+                    }
+                }}
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
+                classId={selectedClassForResults}
+                students={students}
             />
             <StudentReportArchiveModal
                 isOpen={showStudentReportModal}

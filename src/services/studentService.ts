@@ -732,15 +732,89 @@ export const fetchArchivedResults = async (classId: string, term: string, academ
 };
 
 // ====================== LOCK FUNCTIONS ======================
-export const lockResults = async (classId: string, term: string, lock: boolean) => {
+// export const lockResults = async (classId: string, term: string, lock: boolean) => {
+//   const schoolId = getSchoolId();
+//   // const url = `${API_BASE_URL}/api/students/lock-results`;
+//   const url = `${API_BASE_URL}/api/classes/lock-results`;  // ✅ FIXED
+
+//   const res = await fetch(url, {
+//     method: 'POST',
+//     headers: authHeaders(),
+//     body: JSON.stringify({ classId, term, lock, schoolId }),
+//   });
+
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to lock/unlock results');
+//   }
+//   return res.json();
+// };
+
+// ====================== LOCK FUNCTIONS ======================
+// export const lockResults = async (
+//   classId: string,
+//   term: string,
+//   assessmentType: 'qa1' | 'qa2' | 'endOfTerm',
+//   lock: boolean,
+//   studentIds?: string[] // Add this parameter
+// ) => {
+//   const schoolId = getSchoolId();
+//   const url = `${API_BASE_URL}/api/classes/lock-results`;  // ✅ FIXED
+
+//   const requestBody: any = {
+//     classId,
+//     term,
+//     assessmentType, // Add this
+//     lock,
+//     schoolId
+//   };
+
+//   // Only add studentIds if provided and not empty
+//   if (studentIds && studentIds.length > 0) {
+//     requestBody.studentIds = studentIds;
+//   }
+
+//   const res = await fetch(url, {
+//     method: 'POST',
+//     headers: authHeaders(),
+//     body: JSON.stringify(requestBody),
+//   });
+
+//   if (!res.ok) {
+//     const error = await res.json();
+//     throw new Error(error.message || 'Failed to lock/unlock results');
+//   }
+//   return res.json();
+// };
+
+export const lockResults = async (
+  classId: string,
+  term: string,
+  assessmentType: 'qa1' | 'qa2' | 'endOfTerm',
+  lock: boolean,
+  lockReason: 'fee' | 'teacher',  // ADD THIS PARAMETER
+  studentIds?: string[]
+) => {
   const schoolId = getSchoolId();
-  // const url = `${API_BASE_URL}/api/students/lock-results`;
-  const url = `${API_BASE_URL}/api/classes/lock-results`;  // ✅ FIXED
+  const url = `${API_BASE_URL}/api/classes/lock-results`;
+
+  const requestBody: any = {
+    classId,
+    term,
+    assessmentType,
+    lock,
+    lockReason,  // ADD THIS
+    schoolId
+  };
+
+  if (studentIds && studentIds.length > 0) {
+    requestBody.studentIds = studentIds;
+  }
 
   const res = await fetch(url, {
     method: 'POST',
     headers: authHeaders(),
-    body: JSON.stringify({ classId, term, lock, schoolId }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!res.ok) {

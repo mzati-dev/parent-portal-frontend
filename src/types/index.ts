@@ -15,6 +15,10 @@ export interface StudentData {
     };
     teacherRemarks: string;
     subjects: Subject[];
+    // ADD THESE TWO LINES HERE
+    resultsLocked?: boolean;
+    message?: string;
+
     assessmentStats?: {
         qa1: {
             classRank: number;
