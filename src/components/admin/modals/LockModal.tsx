@@ -36,24 +36,28 @@ const LockModal: React.FC<LockModalProps> = ({
     const [students, setStudents] = useState<Student[]>(propStudents);
     const [fetching, setFetching] = useState(false);
 
-    useEffect(() => {
-        if (classId && propStudents.length === 0) {
-            fetchStudents();
-        }
-    }, [classId]);
+    // useEffect(() => {
+    //     if (classId && propStudents.length === 0) {
+    //         fetchStudents();
+    //     }
+    // }, [classId]);
 
-    const fetchStudents = async () => {
-        setFetching(true);
-        try {
-            const response = await fetch(`/api/classes/${classId}/students`);
-            const data = await response.json();
-            setStudents(data);
-        } catch (error) {
-            console.error('Error fetching students:', error);
-        } finally {
-            setFetching(false);
-        }
-    };
+    // const fetchStudents = async () => {
+    //     setFetching(true);
+    //     try {
+    //         const response = await fetch(`/api/classes/${classId}/students`);
+    //         const data = await response.json();
+    //         setStudents(data);
+    //     } catch (error) {
+    //         console.error('Error fetching students:', error);
+    //     } finally {
+    //         setFetching(false);
+    //     }
+    // };
+
+    useEffect(() => {
+        setStudents(propStudents);
+    }, [propStudents]);
 
     const filteredStudents = students.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
