@@ -90,7 +90,7 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ studentData }) => {
                         {/* QA1 Box */}
                         <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4 border border-indigo-200">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">QA1</span>
+                                <span className="text-xs font-semibold text-indigo-700 uppercase tracking-wide">Test 1</span>
                                 <FileText className="w-4 h-4 text-indigo-600" />
                             </div>
 
@@ -129,7 +129,7 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ studentData }) => {
                                 </div>
                             ) : (
                                 <div className="text-center py-3">
-                                    <p className="text-sm text-slate-500 italic">No QA1 scores recorded</p>
+                                    <p className="text-sm text-slate-500 italic">No Test 1 scores recorded</p>
                                     <p className="text-xs text-slate-400">Student did not write this assessment</p>
                                 </div>
                             )}
@@ -138,7 +138,7 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ studentData }) => {
                         {/* QA2 Box */}
                         <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">QA2</span>
+                                <span className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">Test 2</span>
                                 <FileText className="w-4 h-4 text-emerald-600" />
                             </div>
 
@@ -177,7 +177,7 @@ const StudentInfo: React.FC<StudentInfoProps> = ({ studentData }) => {
                                 </div>
                             ) : (
                                 <div className="text-center py-3">
-                                    <p className="text-sm text-slate-500 italic">No QA2 scores recorded</p>
+                                    <p className="text-sm text-slate-500 italic">No Test 2 scores recorded</p>
                                     <p className="text-xs text-slate-400">Student did not write this assessment</p>
                                 </div>
                             )}

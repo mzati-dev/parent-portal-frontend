@@ -32,7 +32,7 @@ const AssessmentTabs: React.FC<AssessmentTabsProps> = ({ activeTab, setActiveTab
                         <tab.icon className="w-4 h-4" />
                         <span className="hidden sm:inline">{tab.label}</span>
                         <span className="sm:hidden">
-                            {tab.id === 'qa1' ? 'QA1' : tab.id === 'qa2' ? 'QA2' : tab.id === 'endOfTerm' ? 'EOT' : 'Report'}
+                            {tab.id === 'qa1' ? 'Test 1' : tab.id === 'qa2' ? 'Test 2' : tab.id === 'endOfTerm' ? 'End Of Term' : 'Report'}
                         </span>
                     </button>
                 ))}
