@@ -718,13 +718,26 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
     };
 
     // Update your loadArchivedResults function:
+    // const loadArchivedResults = async (classId: string, term: string, academicYear: string) => {
+    //     try {
+    //         const data = await fetchArchivedResults(classId, term, academicYear);
+    //         setArchivedResults(data ? [data] : []);
+    //         setShowArchivedModal(true);  // ✅ Open modal AFTER data loads
+    //     } catch (error: any) {
+    //         showMessage(error.message || 'Failed to load archived results', true);
+    //     }
+    // };
+    // Update your loadArchivedResults function:
     const loadArchivedResults = async (classId: string, term: string, academicYear: string) => {
         try {
             const data = await fetchArchivedResults(classId, term, academicYear);
-            setArchivedResults(data ? [data] : []);
-            setShowArchivedModal(true);  // ✅ Open modal AFTER data loads
+
+            // data is already an array from your updated fetchArchivedResults
+            setArchivedResults(data); // ← CHANGE THIS: remove [data] wrapper
+            setShowArchivedModal(true);
         } catch (error: any) {
             showMessage(error.message || 'Failed to load archived results', true);
+            setArchivedResults([]);
         }
     };
     // const handleLockResults = async (classId: string, term: string, lock: boolean) => {
@@ -1220,13 +1233,25 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
             {/* Archived Results View */}
 
-            <ArchivedResultsView
+            {/* <ArchivedResultsView
                 isOpen={showArchivedModal}  // ✅ Use separate state
                 onClose={() => {
                     setShowArchivedModal(false);
                     setArchivedResults([]);
                 }}
                 archivedResults={archivedResults}
+            /> */}
+
+            <ArchivedResultsView
+                isOpen={showArchivedModal}
+                onClose={() => {
+                    setShowArchivedModal(false);
+                    setArchivedResults([]);
+                }}
+                archivedResults={archivedResults}
+                subjects={subjects}  // Add this
+                activeConfig={activeConfig}  // Add this
+                calculateGrade={calculateGrade}  // Add this
             />
 
             {/* <LockedAssessmentsModal
@@ -1358,7 +1383,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 term={classes.find(c => c.id === selectedClassForResults)?.term}
                 classId={selectedClassForResults}
                 students={students}
-            />
+            /> */}
             <StudentReportArchiveModal
                 isOpen={showStudentReportModal}
                 onClose={() => setShowStudentReportModal(false)}
@@ -1366,7 +1391,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 schoolName={schoolName} // You'll need to get this
                 onSendEmail={handleSendReportEmail}
                 onSendWhatsApp={handleSendReportWhatsApp}
-            /> */}
+            />
 
             <LockModal
                 isOpen={showLockModal}

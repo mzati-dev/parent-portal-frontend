@@ -9,6 +9,7 @@ interface ReportCardProps {
     studentData: StudentData;
     onPrint?: () => void;
     showActions?: boolean;
+    showPDFOnly?: boolean
 }
 
 // Define the shape of the data coming from your API (based on your SchoolsManagement code)
@@ -20,7 +21,8 @@ interface SchoolFromDB {
 const ReportCard: React.FC<ReportCardProps> = ({
     studentData,
     onPrint,
-    showActions = true
+    showActions = true,
+    showPDFOnly = false
 }) => {
     const reportCardRef = useRef<HTMLDivElement>(null);
 
@@ -726,6 +728,282 @@ const ReportCard: React.FC<ReportCardProps> = ({
                 </p>
                 <div className="mt-4 text-sm text-slate-400">
                     Current grade calculation method: <span className="font-semibold">{studentData.gradeConfiguration?.configuration_name}</span>
+                </div>
+            </div>
+        );
+    }
+
+    if (showPDFOnly) {
+        // Calculate performance stats
+        const subjectsWithScores = studentData.subjects.filter(s =>
+            s.qa1 !== null || s.qa2 !== null || s.endOfTerm !== null ||
+            s.qa1_absent || s.qa2_absent || s.endOfTerm_absent
+        );
+
+        const subjectsPassed = subjectsWithScores.filter(s => {
+            const grade = getSubjectGrade(s);
+            return grade !== 'F';
+        }).length;
+
+        const abGrades = subjectsWithScores.filter(s => {
+            const grade = getSubjectGrade(s);
+            return ['A', 'B'].includes(grade);
+        }).length;
+
+        const cdGrades = subjectsWithScores.filter(s => {
+            const grade = getSubjectGrade(s);
+            return ['C', 'D'].includes(grade);
+        }).length;
+
+        const passMark = studentData.gradeConfiguration?.pass_mark || 50;
+        const belowPass = subjectsWithScores.filter(s => {
+            const score = calculateSubjectAverage(s);
+            if (score === 'AB') return false;
+            return (score as number) < passMark;
+        }).length;
+
+        // Get strongest subjects
+        const validScores = subjectsWithScores
+            .map(s => ({ name: s.name, score: calculateSubjectAverage(s) as number }))
+            .filter(s => !isNaN(s.score) && s.score !== 'AB' as any);
+
+        const highestScore = validScores.length > 0 ? Math.max(...validScores.map(s => s.score)) : 0;
+        const strongestSubjects = validScores.filter(s => s.score === highestScore);
+        const strongestNames = strongestSubjects.map(s => s.name).join(', ');
+
+        // Get needs improvement subjects
+        const needsImprovement = subjectsWithScores.filter(s => {
+            const grade = getSubjectGrade(s);
+            return ['D', 'F'].includes(grade);
+        });
+        const improvementNames = needsImprovement.length > 0
+            ? needsImprovement.map(s => `${s.name} (${getSubjectGrade(s)})`).join(', ')
+            : 'None';
+
+        // Function to get grade badge color
+        const getGradeBadgeColor = (grade: string) => {
+            switch (grade) {
+                case 'A': return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                case 'B': return 'bg-blue-100 text-blue-800 border-blue-300';
+                case 'C': return 'bg-amber-100 text-amber-800 border-amber-300';
+                case 'D': return 'bg-orange-100 text-orange-800 border-orange-300';
+                case 'F': return 'bg-red-100 text-red-800 border-red-300';
+                case 'AB': return 'bg-slate-100 text-slate-800 border-slate-300';
+                default: return 'bg-slate-100 text-slate-800 border-slate-300';
+            }
+        };
+
+        return (
+            <div className="font-['helvetica'] max-w-4xl mx-auto p-8 bg-gradient-to-br from-slate-50 to-white rounded-xl shadow-2xl">
+                {/* Header with gradient */}
+                <div className="text-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-t-xl -mt-8 -mx-8 mb-6">
+                    <h1 className="text-3xl font-bold tracking-wide">{schoolName}</h1>
+                    <h2 className="text-xl font-semibold mt-2 opacity-90">Complete Report Card</h2>
+                    <div className="flex justify-center gap-4 mt-3 text-sm">
+                        <span className="px-3 py-1 bg-white/20 rounded-full">Year: {studentData.academicYear}</span>
+                        <span className="px-3 py-1 bg-white/20 rounded-full">Term: {studentData.term}</span>
+                    </div>
+                </div>
+
+                {/* STUDENT & ACADEMIC INFORMATION */}
+                <div className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-l-4 border-indigo-500 shadow-sm">
+                    <p className="font-bold text-lg text-indigo-800 mb-3 flex items-center">
+                        <span className="w-1 h-6 bg-indigo-600 rounded-full mr-2"></span>
+                        STUDENT & ACADEMIC INFORMATION
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-indigo-700">Student Name:</span> {studentData.name || 'N/A'}</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-indigo-700">Exam Number:</span> {studentData.examNumber || 'N/A'}</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-indigo-700">Class:</span> {studentData.class || 'N/A'}</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-indigo-700">Term:</span> {studentData.term || 'N/A'}</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-indigo-700">Academic Year:</span> {studentData.academicYear || 'N/A'}</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-indigo-700">Total Enrollment:</span> {studentData.totalStudents || 'N/A'}</div>
+                    </div>
+                </div>
+
+                {/* SUMMARY */}
+                <div className="mt-6 bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border-l-4 border-purple-500 shadow-sm">
+                    <p className="font-bold text-lg text-purple-800 mb-3 flex items-center">
+                        <span className="w-1 h-6 bg-purple-600 rounded-full mr-2"></span>
+                        SUMMARY
+                    </p>
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-purple-700">Class Position:</span> {studentData.classRank}/{studentData.totalStudents}</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-purple-700">Overall Status:</span>
+                            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${getOverallRemark() === 'PASSED' ? 'bg-green-100 text-green-800' :
+                                    getOverallRemark() === 'FAILED' ? 'bg-red-100 text-red-800' :
+                                        'bg-slate-100 text-slate-800'
+                                }`}>
+                                {getOverallRemark()}
+                            </span>
+                        </div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-purple-700">Final Average:</span> {calculateOverallAverage()}%</div>
+                        <div className="bg-white p-2 rounded shadow-sm"><span className="font-medium text-purple-700">Overall Grade:</span>
+                            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs font-bold ${getGradeBadgeColor(getOverallGrade())}`}>
+                                {getOverallGrade()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* RESULTS */}
+                <div className="mt-6 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-lg border-l-4 border-emerald-500 shadow-sm">
+                    <p className="font-bold text-lg text-emerald-800 mb-3 flex items-center">
+                        <span className="w-1 h-6 bg-emerald-600 rounded-full mr-2"></span>
+                        RESULTS
+                    </p>
+                    <div className="overflow-x-auto rounded-lg border border-emerald-200">
+                        <table className="w-full text-sm">
+                            <thead className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
+                                <tr>
+                                    <th className="px-4 py-3 text-left">Subject</th>
+                                    <th className="px-4 py-3 text-center">Total Marks</th>
+                                    <th className="px-4 py-3 text-center">Marks Scored</th>
+                                    <th className="px-4 py-3 text-center">Grade</th>
+                                    <th className="px-4 py-3 text-center">Remark</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-emerald-200">
+                                {subjectsWithScores.map((subject, idx) => {
+                                    const avg = calculateSubjectAverage(subject);
+                                    const avgDisplay = avg === 'AB' ? 'AB' : avg.toFixed(1);
+                                    const grade = getSubjectGrade(subject);
+                                    const remark = getSubjectRemark(subject);
+
+                                    return (
+                                        <tr key={idx} className="hover:bg-emerald-50/50 transition-colors">
+                                            <td className="px-4 py-2 font-medium">{subject.name}</td>
+                                            <td className="px-4 py-2 text-center">100</td>
+                                            <td className="px-4 py-2 text-center font-semibold">{avgDisplay}</td>
+                                            <td className="px-4 py-2 text-center">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${getGradeBadgeColor(grade)}`}>
+                                                    {grade}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-2 text-center">
+                                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${remark === 'Passed' ? 'bg-green-100 text-green-800' :
+                                                        remark === 'Absent' ? 'bg-slate-100 text-slate-800' :
+                                                            'bg-red-100 text-red-800'
+                                                    }`}>
+                                                    {remark}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                            <tfoot className="bg-gradient-to-r from-emerald-100 to-teal-100 font-bold">
+                                <tr>
+                                    <td className="px-4 py-3">GRAND TOTAL</td>
+                                    <td className="px-4 py-3 text-center">{subjectsWithScores.length * 100}</td>
+                                    <td className="px-4 py-3 text-center text-emerald-700">{calculateGrandTotal()}</td>
+                                    <td className="px-4 py-3 text-center">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${getGradeBadgeColor(getOverallGrade())}`}>
+                                            {getOverallGrade()}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-3 text-center">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${getOverallRemark() === 'PASSED' ? 'bg-green-100 text-green-800' :
+                                                getOverallRemark() === 'FAILED' ? 'bg-red-100 text-red-800' :
+                                                    'bg-slate-100 text-slate-800'
+                                            }`}>
+                                            {getOverallRemark()}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                {/* PERFORMANCE ANALYSIS */}
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-4 rounded-lg border-l-4 border-amber-500 shadow-sm">
+                        <p className="font-bold text-amber-800 mb-2 flex items-center">
+                            <span className="w-1 h-6 bg-amber-600 rounded-full mr-2"></span>
+                            STRONGEST SUBJECTS
+                        </p>
+                        <div className="bg-white p-3 rounded-lg shadow-sm">
+                            <p className="text-lg font-bold text-amber-700">{strongestNames || 'N/A'}</p>
+                            {highestScore > 0 && (
+                                <p className="text-sm text-slate-600 mt-1">Score: <span className="font-bold text-amber-600">{Math.round(highestScore)}%</span></p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-gradient-to-br from-rose-50 to-red-50 p-4 rounded-lg border-l-4 border-rose-500 shadow-sm">
+                        <p className="font-bold text-rose-800 mb-2 flex items-center">
+                            <span className="w-1 h-6 bg-rose-600 rounded-full mr-2"></span>
+                            NEEDS IMPROVEMENT
+                        </p>
+                        <div className="bg-white p-3 rounded-lg shadow-sm">
+                            <p className="text-sm font-medium text-rose-700">{improvementNames}</p>
+                            {needsImprovement.length > 0 && (
+                                <p className="text-xs text-slate-500 mt-1">Total flagged: {needsImprovement.length}</p>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Performance Stats Grid */}
+                <div className="mt-4 grid grid-cols-4 gap-3">
+                    <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-3 rounded-lg text-center border border-emerald-200">
+                        <p className="text-xs text-emerald-700">Subjects Passed</p>
+                        <p className="text-xl font-bold text-emerald-800">{subjectsPassed}/{subjectsWithScores.length}</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-3 rounded-lg text-center border border-blue-200">
+                        <p className="text-xs text-blue-700">A & B Grades</p>
+                        <p className="text-xl font-bold text-blue-800">{abGrades}</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-3 rounded-lg text-center border border-amber-200">
+                        <p className="text-xs text-amber-700">C & D Grades</p>
+                        <p className="text-xl font-bold text-amber-800">{cdGrades}</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-rose-50 to-red-50 p-3 rounded-lg text-center border border-rose-200">
+                        <p className="text-xs text-rose-700">Below {passMark}%</p>
+                        <p className="text-xl font-bold text-rose-800">{belowPass}</p>
+                    </div>
+                </div>
+
+                {/* TEACHER'S REMARK */}
+                <div className="mt-6 bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-lg border-l-4 border-indigo-500 shadow-sm">
+                    <p className="font-bold text-lg text-indigo-800 mb-2 flex items-center">
+                        <span className="w-1 h-6 bg-indigo-600 rounded-full mr-2"></span>
+                        TEACHER'S REMARK
+                    </p>
+                    <div className="bg-white p-4 rounded-lg italic text-slate-700 border border-indigo-200">
+                        "{(() => {
+                            const currentOverallGrade = getOverallGrade();
+                            if (currentOverallGrade === 'AB') {
+                                return 'Student was absent for one or more required assessments. Please ensure attendance for all examinations.';
+                            } else if (currentOverallGrade === 'A') {
+                                return 'An outstanding performance! Keep maintaining this high standard.';
+                            } else if (currentOverallGrade === 'B') {
+                                return 'A very good result. With a little more push, you can reach excellence.';
+                            } else if (currentOverallGrade === 'C') {
+                                return 'A satisfactory performance, but there is room for improvement.';
+                            } else if (currentOverallGrade === 'D') {
+                                return 'You have passed, but more effort is needed to improve grades.';
+                            } else {
+                                return 'Please focus more on your studies and seek help in weak subjects.';
+                            }
+                        })()}"
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="mt-8 text-center bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 rounded-b-xl -mb-8 -mx-8">
+                    <p className="text-lg font-bold tracking-wide">Report Card Generated</p>
+                    <p className="text-sm mt-2 text-slate-300">This report card was generated based on the school's active grade calculation configuration.</p>
+                    <p className="text-sm text-slate-300">For any questions or clarifications, please contact the school administration.</p>
+                    <p className="text-sm mt-3 text-slate-400 border-t border-slate-700 pt-3">
+                        Generated on: {new Date().toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        })}
+                    </p>
                 </div>
             </div>
         );

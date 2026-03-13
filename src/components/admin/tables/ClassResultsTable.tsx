@@ -13,6 +13,7 @@ interface ClassResultsTableProps {
     onPrint: () => void;
     onExport: () => void;
     isDownloading?: boolean;
+    hideDownload?: boolean;
 }
 
 const ClassResultsTable: React.FC<ClassResultsTableProps> = ({
@@ -24,6 +25,8 @@ const ClassResultsTable: React.FC<ClassResultsTableProps> = ({
     onPrint,
     onExport,
     isDownloading = false,
+    hideDownload = false,
+
 }) => {
     // Function to calculate final score for a subject based on grade configuration
     // const calculateSubjectFinalScore = (subject: any): number => {
@@ -712,21 +715,8 @@ const ClassResultsTable: React.FC<ClassResultsTableProps> = ({
                 )}
             </div>
 
-            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
-                {/* <button
-                    onClick={onPrint}
-                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium flex items-center gap-2"
-                >
-                    <Printer className="w-4 h-4" />
-                    Print Results
-                </button> */}
-                {/* <button
-                    onClick={onExport}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium flex items-center gap-2"
-                >
-                    <Download className="w-4 h-4" />
-                    Export as PDF
-                </button> */}
+            {/* <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+        
                 <button
                     onClick={onExport}
                     disabled={isDownloading}
@@ -745,6 +735,30 @@ const ClassResultsTable: React.FC<ClassResultsTableProps> = ({
                         </>
                     )}
                 </button>
+            </div> */}
+
+
+            <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex justify-end gap-3">
+                {!hideDownload && (  // ← ADD THIS CONDITION
+                    <button
+                        onClick={onExport}
+                        disabled={isDownloading}
+                        className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 ${isDownloading ? 'bg-indigo-400 cursor-wait' : 'bg-indigo-600 hover:bg-indigo-700'
+                            } text-white`}
+                    >
+                        {isDownloading ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Generating...</span>
+                            </>
+                        ) : (
+                            <>
+                                <Download className="w-4 h-4" />
+                                <span>Download</span>
+                            </>
+                        )}
+                    </button>
+                )}
             </div>
         </div>
     );
