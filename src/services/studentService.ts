@@ -716,19 +716,49 @@ export const archiveResults = async (classId: string, term: string, academicYear
   return res.json();
 };
 
+// export const fetchArchivedResults = async (classId: string, term: string, academicYear: string) => {
+//   const schoolId = getSchoolId();
+//   // const url = `${API_BASE_URL}/api/students/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;
+//   const url = `${API_BASE_URL}/api/classes/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;  // ✅ FIXED
+//   const res = await fetch(url, {
+//     headers: authHeaders()
+//   });
+
+//   if (!res.ok) {
+//     if (res.status === 404) return null;
+//     throw new Error('Failed to fetch archived results');
+//   }
+//   return res.json();
+// };
+
 export const fetchArchivedResults = async (classId: string, term: string, academicYear: string) => {
   const schoolId = getSchoolId();
-  // const url = `${API_BASE_URL}/api/students/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;
-  const url = `${API_BASE_URL}/api/classes/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;  // ✅ FIXED
-  const res = await fetch(url, {
-    headers: authHeaders()
-  });
+  const url = `${API_BASE_URL}/api/classes/archived-results?classId=${classId}&term=${term}&academicYear=${academicYear}${schoolId ? `&schoolId=${schoolId}` : ''}`;
 
-  if (!res.ok) {
-    if (res.status === 404) return null;
-    throw new Error('Failed to fetch archived results');
+  try {
+    const res = await fetch(url, {
+      headers: authHeaders()
+    });
+
+    if (!res.ok) {
+      if (res.status === 404) return [];
+      throw new Error('Failed to fetch archived results');
+    }
+
+    // Check if response has content
+    const text = await res.text();
+    if (!text) return [];
+
+    // Parse JSON
+    const data = JSON.parse(text);
+
+    // Always return an array
+    return Array.isArray(data) ? data : (data ? [data] : []);
+
+  } catch (error) {
+    console.error('Error fetching archived results:', error);
+    return []; // Return empty array on error
   }
-  return res.json();
 };
 
 // ====================== LOCK FUNCTIONS ======================

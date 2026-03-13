@@ -33,31 +33,42 @@ const LockModal: React.FC<LockModalProps> = ({
     const [lockScope, setLockScope] = useState<'all' | 'selected'>('all');
     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [students, setStudents] = useState<Student[]>(propStudents);
+    const [students, setStudents] = useState<Student[]>([]);
     const [fetching, setFetching] = useState(false);
 
-    // useEffect(() => {
-    //     if (classId && propStudents.length === 0) {
-    //         fetchStudents();
-    //     }
-    // }, [classId]);
-
-    // const fetchStudents = async () => {
-    //     setFetching(true);
-    //     try {
-    //         const response = await fetch(`/api/classes/${classId}/students`);
-    //         const data = await response.json();
-    //         setStudents(data);
-    //     } catch (error) {
-    //         console.error('Error fetching students:', error);
-    //     } finally {
-    //         setFetching(false);
-    //     }
-    // };
-
+    // Use useEffect to update students when propStudents changes or classId changes
     useEffect(() => {
-        setStudents(propStudents);
-    }, [propStudents]);
+        if (classId) {
+            if (propStudents.length > 0) {
+                // If students are provided as props, use them
+                setStudents(propStudents);
+            } else {
+                // Otherwise fetch students for this class
+                fetchStudents();
+            }
+        }
+    }, [classId, propStudents]);
+
+    const fetchStudents = async () => {
+        if (!classId) return;
+
+        setFetching(true);
+        try {
+            const response = await fetch(`/api/classes/${classId}/students`);
+            const data = await response.json();
+            setStudents(data);
+        } catch (error) {
+            console.error('Error fetching students:', error);
+        } finally {
+            setFetching(false);
+        }
+    };
+
+    // Reset selected students when class changes
+    useEffect(() => {
+        setSelectedStudents([]);
+        setSearchTerm('');
+    }, [classId]);
 
     const filteredStudents = students.filter(student =>
         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -98,6 +109,26 @@ const LockModal: React.FC<LockModalProps> = ({
 
     if (!isOpen) return null;
 
+    // Show class info and validate class selection
+    if (!classId) {
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4 p-6">
+                    <div className="text-center">
+                        <h2 className="text-xl font-semibold text-slate-800 mb-4">❌ Class Required</h2>
+                        <p className="text-slate-600 mb-6">Please select a class first to manage student locks.</p>
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden">
@@ -109,10 +140,21 @@ const LockModal: React.FC<LockModalProps> = ({
                 </div>
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-100px)]">
-                    {term && (
-                        <div className="bg-blue-50 p-3 rounded-lg">
+                    {/* Class and Term Info */}
+                    {(term || className) && (
+                        <div className="bg-blue-50 p-3 rounded-lg space-y-1">
+                            {className && (
+                                <p className="text-sm text-blue-700">
+                                    <span className="font-semibold">Class:</span> {className}
+                                </p>
+                            )}
+                            {term && (
+                                <p className="text-sm text-blue-700">
+                                    <span className="font-semibold">Term:</span> {term}
+                                </p>
+                            )}
                             <p className="text-sm text-blue-700">
-                                <span className="font-semibold">Term:</span> {term}
+                                <span className="font-semibold">Total Students:</span> {students.length}
                             </p>
                         </div>
                     )}
@@ -158,34 +200,6 @@ const LockModal: React.FC<LockModalProps> = ({
                         </div>
                     </div>
 
-                    {/* {lockAction === 'lock' && (
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Lock Reason
-                            </label>
-                            <div className="flex gap-4">
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="radio"
-                                        checked={lockReason === 'fee'}
-                                        onChange={() => setLockReason('fee')}
-                                        className="w-4 h-4 text-indigo-600"
-                                    />
-                                    <span className="text-sm text-slate-700">Fee Non-Payment (Hide from parents)</span>
-                                </label>
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="radio"
-                                        checked={lockReason === 'teacher'}
-                                        onChange={() => setLockReason('teacher')}
-                                        className="w-4 h-4 text-indigo-600"
-                                    />
-                                    <span className="text-sm text-slate-700">Teacher Lock (Prevent editing only)</span>
-                                </label>
-                            </div>
-                        </div>
-                    )} */}
-                    {/* Remove the condition - show for both lock and unlock */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
                             {lockAction === 'lock' ? 'Lock Reason' : 'Unlock Type'}
@@ -215,6 +229,7 @@ const LockModal: React.FC<LockModalProps> = ({
                             </label>
                         </div>
                     </div>
+
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
                             Lock Scope
@@ -227,7 +242,7 @@ const LockModal: React.FC<LockModalProps> = ({
                                     onChange={() => setLockScope('all')}
                                     className="w-4 h-4 text-indigo-600"
                                 />
-                                <span className="text-sm text-slate-700">All Students</span>
+                                <span className="text-sm text-slate-700">All Students in {className || 'this class'}</span>
                             </label>
                             <label className="flex items-center gap-2">
                                 <input
@@ -264,7 +279,7 @@ const LockModal: React.FC<LockModalProps> = ({
                                     <>
                                         <div className="flex items-center justify-between mb-3">
                                             <p className="text-sm font-medium text-slate-700">
-                                                {filteredStudents.length} students found
+                                                {filteredStudents.length} students found in {className || 'this class'}
                                             </p>
                                             {filteredStudents.length > 0 && (
                                                 <button
@@ -280,7 +295,9 @@ const LockModal: React.FC<LockModalProps> = ({
                                         <div className="space-y-2 max-h-60 overflow-y-auto border rounded-lg p-2 bg-white">
                                             {filteredStudents.length === 0 ? (
                                                 <p className="text-sm text-slate-500 text-center py-4">
-                                                    No students found matching "{searchTerm}"
+                                                    {students.length === 0
+                                                        ? `No students found in this class`
+                                                        : `No students matching "${searchTerm}"`}
                                                 </p>
                                             ) : (
                                                 filteredStudents.map(student => (
@@ -324,11 +341,11 @@ const LockModal: React.FC<LockModalProps> = ({
                         </button>
                         <button
                             type="submit"
-                            disabled={loading || (lockScope === 'selected' && selectedStudents.length === 0)}
+                            disabled={loading || (lockScope === 'selected' && selectedStudents.length === 0) || fetching}
                             className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${lockAction === 'lock'
                                 ? 'bg-red-600 hover:bg-red-700'
                                 : 'bg-yellow-600 hover:bg-yellow-700'
-                                } ${loading || (lockScope === 'selected' && selectedStudents.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                } ${loading || (lockScope === 'selected' && selectedStudents.length === 0) || fetching ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {loading ? (
                                 <>
@@ -354,7 +371,6 @@ const LockModal: React.FC<LockModalProps> = ({
 
 export default LockModal;
 
-
 // import React, { useState, useEffect } from 'react';
 // import { X, Lock, Search } from 'lucide-react';
 
@@ -367,11 +383,11 @@ export default LockModal;
 // interface LockModalProps {
 //     isOpen: boolean;
 //     onClose: () => void;
-//     onLock: (assessmentType: 'qa1' | 'qa2' | 'endOfTerm', lock: boolean, studentIds?: string[]) => Promise<void>;
+//     onLock: (assessmentType: 'qa1' | 'qa2' | 'endOfTerm', lock: boolean, lockReason: 'fee' | 'teacher', studentIds?: string[]) => Promise<void>;
 //     className?: string;
 //     term?: string;
-//     classId?: string; // Add this to fetch students for this class
-//     students?: Student[]; // Optional: if you want to pass students directly
+//     classId?: string;
+//     students?: Student[];
 // }
 
 // const LockModal: React.FC<LockModalProps> = ({
@@ -385,6 +401,7 @@ export default LockModal;
 // }) => {
 //     const [selectedType, setSelectedType] = useState<'qa1' | 'qa2' | 'endOfTerm'>('qa1');
 //     const [lockAction, setLockAction] = useState<'lock' | 'unlock'>('lock');
+//     const [lockReason, setLockReason] = useState<'fee' | 'teacher'>('fee');
 //     const [loading, setLoading] = useState(false);
 //     const [lockScope, setLockScope] = useState<'all' | 'selected'>('all');
 //     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
@@ -392,27 +409,29 @@ export default LockModal;
 //     const [students, setStudents] = useState<Student[]>(propStudents);
 //     const [fetching, setFetching] = useState(false);
 
-//     // Fetch students if classId is provided and no students passed via props
+//     // useEffect(() => {
+//     //     if (classId && propStudents.length === 0) {
+//     //         fetchStudents();
+//     //     }
+//     // }, [classId]);
+
+//     // const fetchStudents = async () => {
+//     //     setFetching(true);
+//     //     try {
+//     //         const response = await fetch(`/api/classes/${classId}/students`);
+//     //         const data = await response.json();
+//     //         setStudents(data);
+//     //     } catch (error) {
+//     //         console.error('Error fetching students:', error);
+//     //     } finally {
+//     //         setFetching(false);
+//     //     }
+//     // };
+
 //     useEffect(() => {
-//         if (classId && propStudents.length === 0) {
-//             fetchStudents();
-//         }
-//     }, [classId]);
+//         setStudents(propStudents);
+//     }, [propStudents]);
 
-//     const fetchStudents = async () => {
-//         setFetching(true);
-//         try {
-//             const response = await fetch(`/api/classes/${classId}/students`);
-//             const data = await response.json();
-//             setStudents(data);
-//         } catch (error) {
-//             console.error('Error fetching students:', error);
-//         } finally {
-//             setFetching(false);
-//         }
-//     };
-
-//     // Filter students based on search
 //     const filteredStudents = students.filter(student =>
 //         student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
 //         student.examNumber.toLowerCase().includes(searchTerm.toLowerCase())
@@ -441,7 +460,7 @@ export default LockModal;
 //         setLoading(true);
 //         try {
 //             const studentIds = lockScope === 'all' ? [] : selectedStudents;
-//             await onLock(selectedType, lockAction === 'lock', studentIds);
+//             await onLock(selectedType, lockAction === 'lock', lockReason, studentIds);
 //             onClose();
 //         } catch (error) {
 //             console.error('Error locking:', error);
@@ -512,6 +531,63 @@ export default LockModal;
 //                         </div>
 //                     </div>
 
+//                     {/* {lockAction === 'lock' && (
+//                         <div>
+//                             <label className="block text-sm font-medium text-slate-700 mb-2">
+//                                 Lock Reason
+//                             </label>
+//                             <div className="flex gap-4">
+//                                 <label className="flex items-center gap-2">
+//                                     <input
+//                                         type="radio"
+//                                         checked={lockReason === 'fee'}
+//                                         onChange={() => setLockReason('fee')}
+//                                         className="w-4 h-4 text-indigo-600"
+//                                     />
+//                                     <span className="text-sm text-slate-700">Fee Non-Payment (Hide from parents)</span>
+//                                 </label>
+//                                 <label className="flex items-center gap-2">
+//                                     <input
+//                                         type="radio"
+//                                         checked={lockReason === 'teacher'}
+//                                         onChange={() => setLockReason('teacher')}
+//                                         className="w-4 h-4 text-indigo-600"
+//                                     />
+//                                     <span className="text-sm text-slate-700">Teacher Lock (Prevent editing only)</span>
+//                                 </label>
+//                             </div>
+//                         </div>
+//                     )} */}
+//                     {/* Remove the condition - show for both lock and unlock */}
+//                     <div>
+//                         <label className="block text-sm font-medium text-slate-700 mb-2">
+//                             {lockAction === 'lock' ? 'Lock Reason' : 'Unlock Type'}
+//                         </label>
+//                         <div className="flex gap-4">
+//                             <label className="flex items-center gap-2">
+//                                 <input
+//                                     type="radio"
+//                                     checked={lockReason === 'fee'}
+//                                     onChange={() => setLockReason('fee')}
+//                                     className="w-4 h-4 text-indigo-600"
+//                                 />
+//                                 <span className="text-sm text-slate-700">
+//                                     {lockAction === 'lock' ? 'Fee Non-Payment (Hide from parents)' : 'Unlock Fee Locks'}
+//                                 </span>
+//                             </label>
+//                             <label className="flex items-center gap-2">
+//                                 <input
+//                                     type="radio"
+//                                     checked={lockReason === 'teacher'}
+//                                     onChange={() => setLockReason('teacher')}
+//                                     className="w-4 h-4 text-indigo-600"
+//                                 />
+//                                 <span className="text-sm text-slate-700">
+//                                     {lockAction === 'lock' ? 'Teacher Lock (Prevent editing only)' : 'Unlock Teacher Locks'}
+//                                 </span>
+//                             </label>
+//                         </div>
+//                     </div>
 //                     <div>
 //                         <label className="block text-sm font-medium text-slate-700 mb-2">
 //                             Lock Scope
@@ -623,8 +699,8 @@ export default LockModal;
 //                             type="submit"
 //                             disabled={loading || (lockScope === 'selected' && selectedStudents.length === 0)}
 //                             className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${lockAction === 'lock'
-//                                     ? 'bg-red-600 hover:bg-red-700'
-//                                     : 'bg-yellow-600 hover:bg-yellow-700'
+//                                 ? 'bg-red-600 hover:bg-red-700'
+//                                 : 'bg-yellow-600 hover:bg-yellow-700'
 //                                 } ${loading || (lockScope === 'selected' && selectedStudents.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
 //                         >
 //                             {loading ? (
@@ -650,326 +726,3 @@ export default LockModal;
 // };
 
 // export default LockModal;
-
-// // import React, { useState } from 'react';
-// // import { X, Lock } from 'lucide-react';
-
-// // interface LockModalProps {
-// //     isOpen: boolean;
-// //     onClose: () => void;
-// //     onLock: (assessmentType: 'qa1' | 'qa2' | 'endOfTerm', lock: boolean, studentIds?: string[]) => Promise<void>;
-// //     className?: string;
-// //     term?: string;
-// //     students?: Array<{ id: string; name: string; examNumber: string; feePaid?: boolean }>;
-// // }
-
-// // const LockModal: React.FC<LockModalProps> = ({
-// //     isOpen,
-// //     onClose,
-// //     onLock,
-// //     className,
-// //     term,
-// //     students = []
-// // }) => {
-// //     const [selectedType, setSelectedType] = useState<'qa1' | 'qa2' | 'endOfTerm'>('qa1');
-// //     const [lockAction, setLockAction] = useState<'lock' | 'unlock'>('lock');
-// //     const [loading, setLoading] = useState(false);
-// //     const [lockScope, setLockScope] = useState<'all' | 'unpaid'>('all');
-// //     const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-
-// //     const unpaidStudents = students.filter(s => s.feePaid === false);
-
-// //     const handleSubmit = async (e: React.FormEvent) => {
-// //         e.preventDefault();
-// //         setLoading(true);
-// //         try {
-// //             const studentIds = lockScope === 'all' ? [] : selectedStudents;
-// //             await onLock(selectedType, lockAction === 'lock', studentIds);
-// //             onClose();
-// //         } catch (error) {
-// //             console.error('Error locking:', error);
-// //         } finally {
-// //             setLoading(false);
-// //         }
-// //     };
-
-// //     if (!isOpen) return null;
-
-// //     return (
-// //         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-// //             <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-// //                 <div className="flex items-center justify-between p-6 border-b border-slate-200">
-// //                     <h2 className="text-xl font-semibold text-slate-800">🔒 Lock/Unlock Results</h2>
-// //                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-// //                         <X className="w-5 h-5 text-slate-500" />
-// //                     </button>
-// //                 </div>
-
-// //                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
-// //                     {term && (
-// //                         <div className="bg-blue-50 p-3 rounded-lg">
-// //                             <p className="text-sm text-blue-700">
-// //                                 <span className="font-semibold">Term:</span> {term}
-// //                             </p>
-// //                         </div>
-// //                     )}
-
-// //                     <div>
-// //                         <label className="block text-sm font-medium text-slate-700 mb-2">
-// //                             Assessment Type
-// //                         </label>
-// //                         <select
-// //                             value={selectedType}
-// //                             onChange={(e) => setSelectedType(e.target.value as any)}
-// //                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-// //                         >
-// //                             <option value="qa1">Quarterly Assessment 1 (QA1)</option>
-// //                             <option value="qa2">Quarterly Assessment 2 (QA2)</option>
-// //                             <option value="endOfTerm">End of Term</option>
-// //                         </select>
-// //                     </div>
-
-// //                     <div>
-// //                         <label className="block text-sm font-medium text-slate-700 mb-2">
-// //                             Action
-// //                         </label>
-// //                         <div className="flex gap-4">
-// //                             <label className="flex items-center gap-2">
-// //                                 <input
-// //                                     type="radio"
-// //                                     checked={lockAction === 'lock'}
-// //                                     onChange={() => setLockAction('lock')}
-// //                                     className="w-4 h-4 text-indigo-600"
-// //                                 />
-// //                                 <span className="text-sm text-slate-700">Lock</span>
-// //                             </label>
-// //                             <label className="flex items-center gap-2">
-// //                                 <input
-// //                                     type="radio"
-// //                                     checked={lockAction === 'unlock'}
-// //                                     onChange={() => setLockAction('unlock')}
-// //                                     className="w-4 h-4 text-indigo-600"
-// //                                 />
-// //                                 <span className="text-sm text-slate-700">Unlock</span>
-// //                             </label>
-// //                         </div>
-// //                     </div>
-
-// //                     <div>
-// //                         <label className="block text-sm font-medium text-slate-700 mb-2">
-// //                             Lock Scope
-// //                         </label>
-// //                         <div className="flex gap-4 mb-4">
-// //                             <label className="flex items-center gap-2">
-// //                                 <input
-// //                                     type="radio"
-// //                                     checked={lockScope === 'all'}
-// //                                     onChange={() => setLockScope('all')}
-// //                                     className="w-4 h-4 text-indigo-600"
-// //                                 />
-// //                                 <span className="text-sm text-slate-700">All Students</span>
-// //                             </label>
-// //                             <label className="flex items-center gap-2">
-// //                                 <input
-// //                                     type="radio"
-// //                                     checked={lockScope === 'unpaid'}
-// //                                     onChange={() => setLockScope('unpaid')}
-// //                                     className="w-4 h-4 text-indigo-600"
-// //                                 />
-// //                                 <span className="text-sm text-slate-700">Unpaid Fees Only</span>
-// //                             </label>
-// //                         </div>
-
-// //                         {lockScope === 'unpaid' && (
-// //                             <div className="mt-4 border rounded-lg p-4 max-h-48 overflow-y-auto">
-// //                                 <p className="text-sm font-medium mb-2">Select students with unpaid fees:</p>
-// //                                 {unpaidStudents.length === 0 ? (
-// //                                     <p className="text-sm text-slate-500">No students with unpaid fees</p>
-// //                                 ) : (
-// //                                     unpaidStudents.map(student => (
-// //                                         <label key={student.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded">
-// //                                             <input
-// //                                                 type="checkbox"
-// //                                                 checked={selectedStudents.includes(student.id)}
-// //                                                 onChange={(e) => {
-// //                                                     if (e.target.checked) {
-// //                                                         setSelectedStudents([...selectedStudents, student.id]);
-// //                                                     } else {
-// //                                                         setSelectedStudents(selectedStudents.filter(id => id !== student.id));
-// //                                                     }
-// //                                                 }}
-// //                                                 className="rounded border-slate-300"
-// //                                             />
-// //                                             <span className="text-sm">{student.name} ({student.examNumber})</span>
-// //                                         </label>
-// //                                     ))
-// //                                 )}
-// //                             </div>
-// //                         )}
-// //                     </div>
-
-// //                     <div className="flex gap-3 pt-4">
-// //                         <button
-// //                             type="button"
-// //                             onClick={onClose}
-// //                             className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-// //                         >
-// //                             Cancel
-// //                         </button>
-// //                         <button
-// //                             type="submit"
-// //                             disabled={loading || (lockScope === 'unpaid' && selectedStudents.length === 0)}
-// //                             className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${lockAction === 'lock'
-// //                                 ? 'bg-red-600 hover:bg-red-700'
-// //                                 : 'bg-yellow-600 hover:bg-yellow-700'
-// //                                 } ${loading || (lockScope === 'unpaid' && selectedStudents.length === 0) ? 'opacity-50 cursor-not-allowed' : ''}`}
-// //                         >
-// //                             {loading ? (
-// //                                 <>
-// //                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-// //                                     Processing...
-// //                                 </>
-// //                             ) : (
-// //                                 <>
-// //                                     <Lock className="w-4 h-4" />
-// //                                     {lockAction === 'lock' ? 'Lock' : 'Unlock'}
-// //                                     {lockScope === 'unpaid' && ` (${selectedStudents.length} students)`}
-// //                                 </>
-// //                             )}
-// //                         </button>
-// //                     </div>
-// //                 </form>
-// //             </div>
-// //         </div>
-// //     );
-// // };
-
-// // export default LockModal;
-
-// // import React, { useState } from 'react';
-// // import { X, Lock } from 'lucide-react';
-
-// // interface LockModalProps {
-// //     isOpen: boolean;
-// //     onClose: () => void;
-// //     onLock: (assessmentType: 'qa1' | 'qa2' | 'endOfTerm', lock: boolean) => Promise<void>;
-// //     className?: string;
-// //     term?: string;
-// // }
-
-// // const LockModal: React.FC<LockModalProps> = ({ isOpen, onClose, onLock, className, term }) => {
-// //     const [selectedType, setSelectedType] = useState<'qa1' | 'qa2' | 'endOfTerm'>('qa1');
-// //     const [lockAction, setLockAction] = useState<'lock' | 'unlock'>('lock');
-// //     const [loading, setLoading] = useState(false);
-
-// //     if (!isOpen) return null;
-
-// //     const handleSubmit = async (e: React.FormEvent) => {
-// //         e.preventDefault();
-// //         setLoading(true);
-// //         try {
-// //             await onLock(selectedType, lockAction === 'lock');
-// //             onClose();
-// //         } catch (error) {
-// //             console.error('Error locking:', error);
-// //         } finally {
-// //             setLoading(false);
-// //         }
-// //     };
-
-// //     return (
-// //         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-// //             <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-// //                 <div className="flex items-center justify-between p-6 border-b border-slate-200">
-// //                     <h2 className="text-xl font-semibold text-slate-800">🔒 Lock/Unlock Results</h2>
-// //                     <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
-// //                         <X className="w-5 h-5 text-slate-500" />
-// //                     </button>
-// //                 </div>
-
-// //                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
-// //                     {term && (
-// //                         <div className="bg-blue-50 p-3 rounded-lg">
-// //                             <p className="text-sm text-blue-700">
-// //                                 <span className="font-semibold">Term:</span> {term}
-// //                             </p>
-// //                         </div>
-// //                     )}
-
-// //                     <div>
-// //                         <label className="block text-sm font-medium text-slate-700 mb-2">
-// //                             Assessment Type
-// //                         </label>
-// //                         <select
-// //                             value={selectedType}
-// //                             onChange={(e) => setSelectedType(e.target.value as any)}
-// //                             className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-// //                         >
-// //                             <option value="qa1">Quarterly Assessment 1 (QA1)</option>
-// //                             <option value="qa2">Quarterly Assessment 2 (QA2)</option>
-// //                             <option value="endOfTerm">End of Term</option>
-// //                         </select>
-// //                     </div>
-
-// //                     <div>
-// //                         <label className="block text-sm font-medium text-slate-700 mb-2">
-// //                             Action
-// //                         </label>
-// //                         <div className="flex gap-4">
-// //                             <label className="flex items-center gap-2">
-// //                                 <input
-// //                                     type="radio"
-// //                                     checked={lockAction === 'lock'}
-// //                                     onChange={() => setLockAction('lock')}
-// //                                     className="w-4 h-4 text-indigo-600"
-// //                                 />
-// //                                 <span className="text-sm text-slate-700">Lock</span>
-// //                             </label>
-// //                             <label className="flex items-center gap-2">
-// //                                 <input
-// //                                     type="radio"
-// //                                     checked={lockAction === 'unlock'}
-// //                                     onChange={() => setLockAction('unlock')}
-// //                                     className="w-4 h-4 text-indigo-600"
-// //                                 />
-// //                                 <span className="text-sm text-slate-700">Unlock</span>
-// //                             </label>
-// //                         </div>
-// //                     </div>
-
-// //                     <div className="flex gap-3 pt-4">
-// //                         <button
-// //                             type="button"
-// //                             onClick={onClose}
-// //                             className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
-// //                         >
-// //                             Cancel
-// //                         </button>
-// //                         <button
-// //                             type="submit"
-// //                             disabled={loading}
-// //                             className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors flex items-center justify-center gap-2 ${lockAction === 'lock'
-// //                                     ? 'bg-red-600 hover:bg-red-700'
-// //                                     : 'bg-yellow-600 hover:bg-yellow-700'
-// //                                 } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-// //                         >
-// //                             {loading ? (
-// //                                 <>
-// //                                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-// //                                     Processing...
-// //                                 </>
-// //                             ) : (
-// //                                 <>
-// //                                     <Lock className="w-4 h-4" />
-// //                                     {lockAction === 'lock' ? 'Lock' : 'Unlock'}
-// //                                 </>
-// //                             )}
-// //                         </button>
-// //                     </div>
-// //                 </form>
-// //             </div>
-// //         </div>
-// //     );
-// // };
-
-// // export default LockModal;

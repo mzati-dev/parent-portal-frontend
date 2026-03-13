@@ -667,10 +667,41 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
 
     // Then update your handlers:
 
-    const handlePublishAssessment = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm', publish: boolean) => {
+    // const handlePublishAssessment = async (classId: string, term: string, assessmentType: 'qa1' | 'qa2' | 'endOfTerm', publish: boolean) => {
+    //     try {
+    //         await publishAssessment(classId, term, assessmentType, publish);
+    //         showMessage(`Assessment ${publish ? 'published' : 'unpublished'} successfully!`);
+    //     } catch (error: any) {
+    //         showMessage(error.message || 'Failed to update publish status', true);
+    //     }
+    // };
+    const handlePublishAssessment = async (
+        assessmentType: 'qa1' | 'qa2' | 'endOfTerm',
+        publish: boolean,
+        publishAll?: boolean
+    ) => {
         try {
-            await publishAssessment(classId, term, assessmentType, publish);
-            showMessage(`Assessment ${publish ? 'published' : 'unpublished'} successfully!`);
+            if (publishAll) {
+                // Loop through ALL classes
+                for (const cls of classes) {
+                    await publishAssessment(cls.id, cls.term, assessmentType, publish);
+                }
+                showMessage(`✅ Successfully ${publish ? 'published' : 'unpublished'} ${assessmentType} for ALL ${classes.length} classes!`);
+            } else {
+                // Publish for selected class only
+                if (!selectedClassForResults) {
+                    showMessage('Please select a class first', true);
+                    return;
+                }
+                const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                await publishAssessment(
+                    selectedClassForResults,
+                    selectedClass?.term || 'Term 1',
+                    assessmentType,
+                    publish
+                );
+                showMessage(`✅ Successfully ${publish ? 'published' : 'unpublished'} ${assessmentType} for ${selectedClass?.name}`);
+            }
         } catch (error: any) {
             showMessage(error.message || 'Failed to update publish status', true);
         }
@@ -742,14 +773,38 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
         }
     };
 
+    // const loadLockedAssessments = async (classId: string, term: string) => {
+    //     try {
+    //         // You'll need to add this function to studentService
+    //         const data = await fetchLockedAssessments(classId, term);
+    //         setLockedAssessments(data);
+    //         setShowLockedModal(true);
+    //     } catch (error: any) {
+    //         showMessage(error.message || 'Failed to load locked assessments', true);
+    //     }
+    // };
+
+    // Update this function in your AdminPanel component:
+
     const loadLockedAssessments = async (classId: string, term: string) => {
         try {
-            // You'll need to add this function to studentService
             const data = await fetchLockedAssessments(classId, term);
-            setLockedAssessments(data);
+
+            // Ensure data is always an array
+            if (Array.isArray(data)) {
+                setLockedAssessments(data);
+            } else if (data && typeof data === 'object') {
+                // If it's a single object, wrap it in an array
+                setLockedAssessments([data]);
+            } else {
+                // If it's null/undefined, set empty array
+                setLockedAssessments([]);
+            }
+
             setShowLockedModal(true);
         } catch (error: any) {
             showMessage(error.message || 'Failed to load locked assessments', true);
+            setLockedAssessments([]); // Reset on error
         }
     };
 
@@ -1124,7 +1179,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         )}
             </div>
             {/* Publish Modal */}
-            <PublishModal
+            {/* <PublishModal
                 isOpen={showPublishModal}
                 onClose={() => setShowPublishModal(false)}
                 onPublish={async (assessmentType, publish) => {
@@ -1139,6 +1194,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                     }
                 }}
                 term={classes.find(c => c.id === selectedClassForResults)?.term}
+            /> */}
+
+            <PublishModal
+                isOpen={showPublishModal}
+                onClose={() => setShowPublishModal(false)}
+                onPublish={handlePublishAssessment}  // This now matches the new signature
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
+                className={classes.find(c => c.id === selectedClassForResults)?.name}
+                totalClasses={classes.length}  // Add this line
             />
 
             {/* Archive Modal */}
@@ -1196,7 +1260,7 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 }}
             /> */}
 
-            <LockedAssessmentsModal
+            {/* <LockedAssessmentsModal
                 isOpen={showLockedModal}
                 onClose={() => setShowLockedModal(false)}
                 assessments={lockedAssessments}
@@ -1214,51 +1278,60 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                         loadLockedAssessments(selectedClassForResults, selectedClass.term);
                     }
                 }}
-            />
-
-            {/* <LockModal
-                isOpen={showLockModal}
-                onClose={() => setShowLockModal(false)}
-                onLock={async (assessmentType, lock) => {
-                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
-                    if (selectedClass) {
-                        await handleLockResults(selectedClassForResults, selectedClass.term, lock);
-                    }
-                }}
-                term={classes.find(c => c.id === selectedClassForResults)?.term}
             /> */}
 
-            {/* <LockModal
-                isOpen={showLockModal}
-                onClose={() => setShowLockModal(false)}
-                onLock={async (assessmentType, lock, studentIds) => {
+            {/* <LockedAssessmentsModal
+                isOpen={showLockedModal}
+                onClose={() => setShowLockedModal(false)}
+                assessments={lockedAssessments}
+                onUnlock={async (assessmentId, assessmentType, lockReason) => {  // ← ADD lockReason here
                     const selectedClass = classes.find(c => c.id === selectedClassForResults);
                     if (selectedClass) {
-                        try {
-                            await lockResults(
+                        await handleLockResults(
+                            selectedClassForResults,
+                            selectedClass.term,
+                            assessmentType as 'qa1' | 'qa2' | 'endOfTerm',
+                            false, // lock = false
+                            lockReason, // ← USE the lockReason from the modal
+                            undefined // studentIds
+                        );
+                        loadLockedAssessments(selectedClassForResults, selectedClass.term);
+                    }
+                }}
+            /> */}
+
+            <LockedAssessmentsModal
+                isOpen={showLockedModal}
+                onClose={() => setShowLockedModal(false)}
+                assessments={lockedAssessments}
+                onUnlock={async (assessmentId, assessmentType, lockReason) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        // Find the assessment object from the array
+                        const assessmentObj = lockedAssessments.find(a => a && a.id === assessmentId);
+
+                        // Get student ID from the assessment object
+                        const studentId = assessmentObj?.student?.id;
+
+                        if (studentId) {
+                            await handleLockResults(
                                 selectedClassForResults,
                                 selectedClass.term,
-                                assessmentType,
-                                lock,
-                                studentIds // Pass the student IDs
+                                assessmentType as 'qa1' | 'qa2' | 'endOfTerm',
+                                false,
+                                lockReason,
+                                [studentId]  // ← Pass student ID
                             );
-                            showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
-
-                            // Refresh the class results to show updated lock status
-                            if (selectedClassForResults) {
-                                loadClassResults(selectedClassForResults);
-                            }
-                        } catch (error: any) {
-                            showMessage(error.message || 'Failed to lock/unlock results', true);
                         }
+                        loadLockedAssessments(selectedClassForResults, selectedClass.term);
                     }
                 }}
-                term={classes.find(c => c.id === selectedClassForResults)?.term}
-                classId={selectedClassForResults} // Pass the class ID
-                students={students} // Pass all students for selection
-            /> */}
+                className={classes.find(c => c.id === selectedClassForResults)?.name} // 👈 ADD THIS LINE
+            />
 
-            <LockModal
+
+
+            {/* <LockModal
                 isOpen={showLockModal}
                 onClose={() => setShowLockModal(false)}
                 onLock={async (assessmentType, lock, lockReason, studentIds) => {  // ← ADD lockReason
@@ -1293,6 +1366,37 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ onBack }) => {
                 schoolName={schoolName} // You'll need to get this
                 onSendEmail={handleSendReportEmail}
                 onSendWhatsApp={handleSendReportWhatsApp}
+            /> */}
+
+            <LockModal
+                isOpen={showLockModal}
+                onClose={() => setShowLockModal(false)}
+                onLock={async (assessmentType, lock, lockReason, studentIds) => {
+                    const selectedClass = classes.find(c => c.id === selectedClassForResults);
+                    if (selectedClass) {
+                        try {
+                            await lockResults(
+                                selectedClassForResults,
+                                selectedClass.term,
+                                assessmentType,
+                                lock,
+                                lockReason,
+                                studentIds
+                            );
+                            showMessage(`Results ${lock ? 'locked' : 'unlocked'} successfully!`);
+                            if (selectedClassForResults) {
+                                loadClassResults(selectedClassForResults);
+                            }
+                        } catch (error: any) {
+                            showMessage(error.message || 'Failed to lock/unlock results', true);
+                        }
+                    }
+                }}
+                term={classes.find(c => c.id === selectedClassForResults)?.term}
+                classId={selectedClassForResults}
+                className={classes.find(c => c.id === selectedClassForResults)?.name} // 👈 Add this
+                // Filter students to only those in the selected class
+                students={students.filter(s => s.class?.id === selectedClassForResults)}
             />
             <PreviewModal
                 isOpen={showPreviewModal}
